@@ -31,6 +31,10 @@ yarn-error.*
 
 # Windows Zone Identifiers
 *:Zone.Identifier
+
+# Signing keys (stored in GitHub Secrets)
+*.p12
+*.jks
 *.pem
 
 # local env files
