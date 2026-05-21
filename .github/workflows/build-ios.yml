@@ -32,6 +32,7 @@ jobs:
 
       - name: Build unsigned .app
         run: |
+          export NODE_BINARY=$(which node)
           xcodebuild \
             -workspace ios/Stundennachweis.xcworkspace \
             -scheme Stundennachweis \
@@ -41,6 +42,7 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
+            NODE_BINARY="$NODE_BINARY" \
             build
 
       - name: Package as IPA
