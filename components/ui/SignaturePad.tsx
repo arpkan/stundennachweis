@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, Pressable, Modal } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { View, Text, Pressable, Modal, ActivityIndicator } from 'react-native';
 import SignatureCanvas, { type SignatureViewRef } from 'react-native-signature-canvas';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { useThemeColors, typography, spacing, radii } from '@/theme';
@@ -14,13 +14,26 @@ export function SignaturePad({ visible, onSave, onClose }: Props) {
   const colors = useThemeColors();
   const sigRef = useRef<SignatureViewRef>(null);
 
+  // The signature canvas captures its dimensions once on mount. It must only
+  // mount after the rotation to landscape has settled, otherwise it measures
+  // portrait size and drawn strokes land offset from the finger.
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
+    let cancelled = false;
     if (visible) {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      setReady(false);
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).then(() => {
+        setTimeout(() => {
+          if (!cancelled) setReady(true);
+        }, 350);
+      });
     } else {
+      setReady(false);
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     }
     return () => {
+      cancelled = true;
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     };
   }, [visible]);
@@ -86,15 +99,21 @@ export function SignaturePad({ visible, onSave, onClose }: Props) {
             overflow: 'hidden',
           }}
         >
-          <SignatureCanvas
-            ref={sigRef}
-            onOK={onSave}
-            onEmpty={() => {}}
-            webStyle={webStyle}
-            penColor="#000000"
-            backgroundColor="#ffffff"
-            autoClear={false}
-          />
+          {ready ? (
+            <SignatureCanvas
+              ref={sigRef}
+              onOK={onSave}
+              onEmpty={() => {}}
+              webStyle={webStyle}
+              penColor="#000000"
+              backgroundColor="#ffffff"
+              autoClear={false}
+            />
+          ) : (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          )}
         </View>
 
         {/* Clear button */}
