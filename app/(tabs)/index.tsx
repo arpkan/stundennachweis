@@ -74,11 +74,11 @@ export default function HomeScreen() {
         }}
       >
         <Pressable onPress={prevMonth} hitSlop={12}>
-          <ChevronLeft size={24} color={colors.text.primary} />
+          <ChevronLeft size={24} color={colors.text.primary} pointerEvents="none" />
         </Pressable>
         <MonthYearPicker month={month} year={year} onSelect={handlePickMonth} />
         <Pressable onPress={nextMonth} hitSlop={12}>
-          <ChevronRight size={24} color={colors.text.primary} />
+          <ChevronRight size={24} color={colors.text.primary} pointerEvents="none" />
         </Pressable>
       </View>
 
@@ -162,7 +162,7 @@ export default function HomeScreen() {
           ...shadows.card,
         })}
       >
-        <Plus size={28} color={colors.text.inverse} />
+        <Plus size={28} color={colors.text.inverse} pointerEvents="none" />
       </Pressable>
 
       {/* Delete confirmation */}

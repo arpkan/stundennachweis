@@ -284,7 +284,7 @@ export default function EntryScreen() {
           {isNew ? 'Neue Fahrt' : 'Fahrt bearbeiten'}
         </Text>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <X size={24} color={colors.text.secondary} />
+          <X size={24} color={colors.text.secondary} pointerEvents="none" />
         </Pressable>
       </View>
 

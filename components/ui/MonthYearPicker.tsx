@@ -57,7 +57,7 @@ export function MonthYearPicker({ month, year, onSelect }: Props) {
                 Monat wählen
               </Text>
               <Pressable onPress={() => setOpen(false)} hitSlop={12}>
-                <X size={22} color={colors.text.secondary} />
+                <X size={22} color={colors.text.secondary} pointerEvents="none" />
               </Pressable>
             </View>
 
@@ -68,7 +68,7 @@ export function MonthYearPicker({ month, year, onSelect }: Props) {
                 hitSlop={12}
                 style={{ padding: spacing.sm }}
               >
-                <ChevronLeft size={26} color={colors.text.primary} />
+                <ChevronLeft size={26} color={colors.text.primary} pointerEvents="none" />
               </Pressable>
               <Text style={{ fontSize: typography.sizes.xl, fontWeight: typography.weights.bold, color: colors.text.primary, minWidth: 60, textAlign: 'center' }}>
                 {draftYear}
@@ -78,7 +78,7 @@ export function MonthYearPicker({ month, year, onSelect }: Props) {
                 hitSlop={12}
                 style={{ padding: spacing.sm }}
               >
-                <ChevronRight size={26} color={colors.text.primary} />
+                <ChevronRight size={26} color={colors.text.primary} pointerEvents="none" />
               </Pressable>
             </View>
 

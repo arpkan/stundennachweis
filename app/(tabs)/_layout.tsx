@@ -31,21 +31,21 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Fahrten',
-          tabBarIcon: ({ color }) => <Clock size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Clock size={24} color={color} pointerEvents="none" />,
         }}
       />
       <Tabs.Screen
         name="bericht"
         options={{
           title: 'Bericht',
-          tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
+          tabBarIcon: ({ color }) => <FileText size={24} color={color} pointerEvents="none" />,
         }}
       />
       <Tabs.Screen
         name="einstellungen"
         options={{
           title: 'Einstellungen',
-          tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Settings size={24} color={color} pointerEvents="none" />,
         }}
       />
     </Tabs>

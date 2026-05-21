@@ -26,7 +26,7 @@ function RightAction({ onPress, colors }: { onPress: () => void; colors: any }) 
         borderBottomRightRadius: radii.md,
       }}
     >
-      <Trash2 size={22} color={colors.text.inverse} />
+      <Trash2 size={22} color={colors.text.inverse} pointerEvents="none" />
       <Text style={{ fontSize: typography.sizes.xs, color: colors.text.inverse, marginTop: 2 }}>
         Löschen
       </Text>

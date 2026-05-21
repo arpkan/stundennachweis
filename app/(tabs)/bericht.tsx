@@ -93,11 +93,11 @@ export default function BerichtScreen() {
         }}
       >
         <Pressable onPress={prevMonth} hitSlop={12}>
-          <ChevronLeft size={24} color={colors.text.primary} />
+          <ChevronLeft size={24} color={colors.text.primary} pointerEvents="none" />
         </Pressable>
         <MonthYearPicker month={month} year={year} onSelect={handlePickMonth} />
         <Pressable onPress={nextMonth} hitSlop={12}>
-          <ChevronRight size={24} color={colors.text.primary} />
+          <ChevronRight size={24} color={colors.text.primary} pointerEvents="none" />
         </Pressable>
       </View>
 
@@ -171,7 +171,7 @@ export default function BerichtScreen() {
             {sending
               ? <ActivityIndicator color={colors.text.inverse} />
               : <>
-                  <Send size={20} color={colors.text.inverse} />
+                  <Send size={20} color={colors.text.inverse} pointerEvents="none" />
                   <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.semibold, color: colors.text.inverse }}>
                     Bericht senden
                   </Text>

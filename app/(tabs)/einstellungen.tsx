@@ -295,7 +295,7 @@ export default function EinstellungenScreen() {
                 {settings.theme === 'system' ? 'Geräte-Standard' : (settings.theme === 'light' ? 'Hell' : 'Dunkel')}
               </Text>
             </View>
-            <Moon size={22} color={colors.primary} />
+            <Moon size={22} color={colors.primary} pointerEvents="none" />
           </Pressable>
         </View>
       </View>
@@ -333,7 +333,7 @@ export default function EinstellungenScreen() {
             </View>
           ) : (
             <View style={{ alignItems: 'center', gap: spacing.sm }}>
-              <PenLine size={28} color={colors.text.disabled} />
+              <PenLine size={28} color={colors.text.disabled} pointerEvents="none" />
               <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary }}>
                 Unterschrift hinzufügen
               </Text>
@@ -376,7 +376,7 @@ export default function EinstellungenScreen() {
               borderBottomColor: colors.border,
             })}
           >
-            <Upload size={22} color={colors.primary} />
+            <Upload size={22} color={colors.primary} pointerEvents="none" />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary }}>
                 Daten exportieren
@@ -402,7 +402,7 @@ export default function EinstellungenScreen() {
               backgroundColor: pressed ? colors.bg.subtle : colors.bg.card,
             })}
           >
-            <Download size={22} color={colors.primary} />
+            <Download size={22} color={colors.primary} pointerEvents="none" />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary }}>
                 Daten importieren
@@ -500,7 +500,7 @@ export default function EinstellungenScreen() {
                 {editing?.label}
               </Text>
               <Pressable onPress={() => setEditing(null)} hitSlop={12}>
-                <X size={22} color={colors.text.secondary} />
+                <X size={22} color={colors.text.secondary} pointerEvents="none" />
               </Pressable>
             </View>
 
@@ -597,7 +597,7 @@ export default function EinstellungenScreen() {
               borderBottomColor: colors.border,
             })}
           >
-            <Trash2 size={22} color={colors.error} />
+            <Trash2 size={22} color={colors.error} pointerEvents="none" />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: typography.sizes.base, color: colors.error }}>
                 Alle Fahrten löschen
@@ -620,7 +620,7 @@ export default function EinstellungenScreen() {
               backgroundColor: pressed ? colors.bg.subtle : colors.bg.card,
             })}
           >
-            <AlertTriangle size={22} color={colors.error} />
+            <AlertTriangle size={22} color={colors.error} pointerEvents="none" />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: typography.sizes.base, color: colors.error }}>
                 App zurücksetzen
@@ -724,7 +724,7 @@ function SettingRow({
           {value || placeholder}
         </Text>
       </View>
-      <ChevronRight size={18} color={colors.text.disabled} />
+      <ChevronRight size={18} color={colors.text.disabled} pointerEvents="none" />
     </Pressable>
   );
 }
