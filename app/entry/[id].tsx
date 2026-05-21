@@ -6,6 +6,7 @@ import {
 import { useSQLiteContext } from 'expo-sqlite';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 
 import { useThemeColors, typography, spacing, radii, shadows } from '@/theme';
@@ -50,6 +51,7 @@ export default function EntryScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
 
   const [form, setForm] = useState<FormState | null>(null);
   const [chips, setChips] = useState<string[]>([]);
@@ -271,7 +273,7 @@ export default function EntryScreen() {
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: spacing.base,
-          paddingTop: spacing.xl,
+          paddingTop: insets.top + spacing.sm,
           paddingBottom: spacing.base,
           backgroundColor: colors.bg.card,
           borderBottomWidth: 1,

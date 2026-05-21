@@ -48,7 +48,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen
                 name="entry/[id]"
-                options={{ presentation: 'modal', headerShown: false }}
+                options={{ presentation: 'fullScreenModal', headerShown: false }}
               />
             </Stack>
           </ThemeManager>
