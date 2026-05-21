@@ -11,7 +11,6 @@ import { useThemeColors, typography, spacing, radii, shadows } from '@/theme';
 import { EntryCard } from '@/components/ui/EntryCard';
 import { MonthYearPicker } from '@/components/ui/MonthYearPicker';
 import { getTripsForMonth, deleteTrip } from '@/db/queries';
-import { seedSampleData } from '@/db/seed';
 import { formatGesamtzeit } from '@/utils/format';
 import type { Trip } from '@/db/types';
 
@@ -47,11 +46,6 @@ export default function HomeScreen() {
   const handlePickMonth = (m: number, y: number) => {
     setMonth(m);
     setYear(y);
-  };
-
-  const handleSeed = async () => {
-    await seedSampleData(db);
-    loadTrips();
   };
 
   const confirmDelete = async () => {
@@ -103,25 +97,10 @@ export default function HomeScreen() {
             paddingBottom: 160,
           }}
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', paddingTop: spacing.xxl, gap: spacing.lg }}>
+            <View style={{ alignItems: 'center', paddingTop: spacing.xxl }}>
               <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>
                 Noch keine Fahrten in diesem Monat
               </Text>
-              <Pressable
-                onPress={handleSeed}
-                style={({ pressed }) => ({
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radii.sm,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  backgroundColor: pressed ? colors.bg.subtle : colors.bg.card,
-                })}
-              >
-                <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary }}>
-                  Testdaten laden
-                </Text>
-              </Pressable>
             </View>
           }
           renderItem={({ item }) => (
@@ -131,25 +110,7 @@ export default function HomeScreen() {
               onDeleteRequest={() => setPendingDeleteId(item.id)}
             />
           )}
-          ListFooterComponent={__DEV__ ? (
-            <View style={{ alignItems: 'center', paddingTop: spacing.lg, paddingBottom: spacing.sm }}>
-              <Pressable
-                onPress={handleSeed}
-                style={({ pressed }) => ({
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radii.sm,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  backgroundColor: pressed ? colors.bg.subtle : colors.bg.card,
-                })}
-              >
-                <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary }}>
-                  Testdaten laden
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
+          ListFooterComponent={null}
         />
       )}
 
