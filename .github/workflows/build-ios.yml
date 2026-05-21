@@ -30,7 +30,7 @@ jobs:
           cd ios
           pod install --repo-update
 
-      - name: Build unsigned .app
+      - name: Build iOS archive
         run: |
           export NODE_BINARY=$(which node)
           xcodebuild \
@@ -38,19 +38,42 @@ jobs:
             -scheme Stundennachweis \
             -configuration Release \
             -sdk iphoneos \
-            -derivedDataPath ./build \
+            -destination 'generic/platform=iOS' \
+            -archivePath ./build/Stundennachweis.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             NODE_BINARY="$NODE_BINARY" \
-            build
+            archive
+
+      - name: Inspect built app
+        run: |
+          APP_PATH=$(find ./build/Stundennachweis.xcarchive/Products/Applications -name "*.app" | head -1)
+          echo "=== App bundle: $APP_PATH ==="
+          ls -la "$APP_PATH"
+          echo
+          echo "=== Launch screen / display Info.plist keys ==="
+          PLIST="$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :UILaunchStoryboardName" "$PLIST" 2>/dev/null || echo "MISSING: UILaunchStoryboardName"
+          /usr/libexec/PlistBuddy -c "Print :UILaunchScreen" "$PLIST" 2>/dev/null || echo "MISSING: UILaunchScreen"
+          /usr/libexec/PlistBuddy -c "Print :UIRequiresFullScreen" "$PLIST" 2>/dev/null || echo "(no UIRequiresFullScreen)"
+          /usr/libexec/PlistBuddy -c "Print :MinimumOSVersion" "$PLIST" 2>/dev/null || echo "(no MinimumOSVersion)"
+          /usr/libexec/PlistBuddy -c "Print :UIDeviceFamily" "$PLIST" 2>/dev/null || echo "(no UIDeviceFamily)"
+          /usr/libexec/PlistBuddy -c "Print :RCTNewArchEnabled" "$PLIST" 2>/dev/null || echo "(no RCTNewArchEnabled)"
+          echo
+          echo "=== Launch / storyboard resources in bundle ==="
+          ls "$APP_PATH" | grep -i -E "storyboard|launch|splash" || echo "NONE FOUND — app will run in scaled compatibility mode"
+          echo
+          echo "=== JS bundle present? ==="
+          ls -la "$APP_PATH/main.jsbundle" 2>/dev/null || echo "MISSING: main.jsbundle"
 
       - name: Package as IPA
         run: |
-          APP_PATH=$(find ./build/Build/Products/Release-iphoneos -name "*.app" | head -1)
+          APP_PATH=$(find ./build/Stundennachweis.xcarchive/Products/Applications -name "*.app" | head -1)
+          rm -rf Payload
           mkdir -p Payload
-          cp -r "$APP_PATH" Payload/
-          zip -r Stundennachweis.ipa Payload/
+          cp -R "$APP_PATH" Payload/
+          /usr/bin/ditto -c -k --sequesterRsrc --keepParent Payload Stundennachweis.ipa
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
