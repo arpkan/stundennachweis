@@ -1,5 +1,5 @@
 # PRD.md — Stundennachweis App
-> Version 1.2 | Last updated: 2026-05-21
+> Version 1.3 | Last updated: 2026-05-22
 > Stack: React Native + Expo (TypeScript) | Platform: iOS + Android
 
 ---
@@ -43,7 +43,7 @@ A mobile app for German school bus / workshop shuttle drivers to digitally recor
 
 **Measurable outcomes:**
 - Time-to-log per entry (new): ≤ 45 seconds
-- Time-to-log per entry (repeat tour via "Wiederholen"): ≤ 20 seconds
+- Time-to-log per entry after defaults are configured: ≤ 20 seconds
 - Time-to-send monthly report: ≤ 60 seconds from opening the app
 - Zero support requests about lost data
 
@@ -87,7 +87,7 @@ Each **monthly report** has:
 
 ---
 
-## 6. Features — MVP scope
+## 6. Features — current scope and implementation status
 
 ### F1 — Trip entry (primary action — designed for end-of-day memory recall)
 
@@ -96,13 +96,13 @@ Each **monthly report** has:
 **Smart defaults — applied automatically on every new entry:**
 - `Datum` defaults to today (DD.MM.YYYY). Driver taps to change if logging for a previous day.
 - `aufgezeichnet am` auto-fills to today, hidden from the driver — not shown as an editable field.
-- `Beginn Fahrt` defaults to the most common start time from the last 5 entries for the same weekday (e.g. if Monday trips usually start at 07:15, that is pre-filled). Falls back to 07:00 if no history.
-- `Tour-Nr.` defaults to the last used tour number. Driver changes it only if different.
+- Time fields default from Settings (`Standard Beginn`, `Standard Ankunft`, `Standard Abfahrt`, `Standard Ende`). If the user has not changed defaults from the system fallback, the app looks up the most recent trip on the same weekday and copies its full time set. Falls back to 07:00 / 07:30 / 07:45 / 09:00.
+- `Tour-Nr.` defaults to the Settings value if set; otherwise it uses the most recent tour chip if available.
 
 **Quick-fill time entry:**
 - Time fields use a custom drum/scroll picker — no keyboard, no typing. 24-hour format.
 - Each time picker shows hour and minute as two separate scrollable columns, large enough for thumb use.
-- Minute column snaps to 5-minute intervals (00, 05, 10 … 55) — most real-world trip times fall on 5-minute marks. Driver can override to exact minute if needed via fine-scroll.
+- Minute column snaps to 5-minute intervals (00, 05, 10 … 55). Exact-minute entry is not part of the current product.
 - Tapping a time field opens the picker inline (not a modal) — faster than a popup.
 
 **Tour-Nr. smart input:**
@@ -121,12 +121,11 @@ Each **monthly report** has:
 
 **Saving:**
 - "Speichern" button: full-width, primary color, 52dp height, always visible at bottom.
-- Validation: `Beginn Fahrt` must be before `Ende Fahrt`. Inline error below the field.
+- Validation: `Tour-Nr.` is required. Times must be chronological: `Beginn Fahrt` <= `Ankunft Schule / Werkstätte` <= `Abfahrt Schule / Werkstätte` <= `Ende Fahrt`, and total duration must be positive. Inline error appears above the save button.
 
-**"Wiederholen" shortcut (repeat last trip):**
-- A "Wiederholen" button on the HomeScreen (secondary, beside FAB).
-- Copies all fields from the most recent entry into a new EntryScreen with today's date.
-- Driver only changes what differs (usually just the times). Saves ~60% of entry effort for regular tours.
+**Removed shortcut:**
+- The earlier planned "Wiederholen" button is intentionally not part of the current product.
+- It was replaced by Settings-based default values plus recent Tour-Nr. chips, which cover the regular-tour use case without adding another HomeScreen action.
 
 ### F2 — Trip list (home screen)
 - Current month's entries listed, sorted by date descending (most recent first)
@@ -135,14 +134,17 @@ Each **monthly report** has:
 - Swipe left to delete (with confirmation)
 - Monthly total Gesamtzeit shown as sticky footer
 - Month selector at top to view/switch previous months
-- **"Wiederholen" button** — copies last entry into new EntryScreen with today's date pre-filled
+- Primary FAB opens a new entry.
+- No "Wiederholen" button; repeat-entry speed comes from configured defaults and recent tour chips.
 
 ### F3 — Settings (set once)
 - Driver name (Name, Vorname) — stored locally, used in every report
 - **Standard-Werte**: User-defined default values (Tour-Nr., Beginn, Ankunft, Abfahrt, Ende) that pre-fill every new trip entry for maximum speed.
 - **Digital Signature**: Driver can draw their signature on a landscape canvas; it is saved and included in the PDF report.
 - **Daily Reminders**: Proactive local notifications to remind the driver to log their trips at a user-defined time (e.g., 17:00).
+- **Appearance**: User can cycle Farbmodus through system, light, and dark. The setting is stored locally and applied via `Appearance.setColorScheme`.
 - **Backup & Restore**: Export all data (trips + settings) to a JSON file and import it back to restore data.
+- **Danger Zone**: Delete all trips while keeping settings, or reset all local data.
 
 ### F4 — PDF report generation
 - PDF layout matches existing paper Stundennachweis exactly.
@@ -151,6 +153,7 @@ Each **monthly report** has:
   - **In-App Preview**: Rendered via HTML string in a WebView for speed.
   - **Final Export**: Generated locally using `pdfmake` for high-fidelity output.
 - 100% offline generation.
+- Preview and export layout both live in `utils/generatePdf.ts` and must stay visually aligned, especially table columns and signature placement.
 
 ### F5 — Report delivery
 - "Bericht senden" button on report preview screen
@@ -161,10 +164,10 @@ Each **monthly report** has:
 
 ## 7. Screens
 
-1. **HomeScreen** — monthly trip list + "Neue Fahrt" FAB button + "Wiederholen" button
+1. **HomeScreen** — monthly trip list + "Neue Fahrt" FAB button + monthly total footer
 2. **EntryScreen** — add / edit a single trip entry
 3. **ReportScreen** — PDF preview + "Bericht senden" button
-4. **SettingsScreen** — driver name, digital signature, backup/restore
+4. **SettingsScreen** — driver name, defaults, reminders, appearance, digital signature, backup/restore, danger zone
 
 Navigation: `expo-router` file-based. Tab bar: Fahrten | Bericht | Einstellungen.
 
@@ -176,6 +179,7 @@ Navigation: `expo-router` file-based. Tab bar: Fahrten | Bericht | Einstellungen
 - No cloud sync in v1
 - Data survives app close, restart, and OS-level app suspension
 - Manual JSON backup/restore via system file picker
+- Backup import replaces existing trips and settings after confirmation.
 
 ---
 
@@ -191,11 +195,19 @@ Navigation: `expo-router` file-based. Tab bar: Fahrten | Bericht | Einstellungen
 
 ---
 
-## 10. Out of scope for v1 (potential v2)
+## 10. Current known gaps against product intent
+
+- **Default detection edge case**: New-entry weekday-history fallback currently treats Settings defaults as "user touched" only when `Standard Beginn` or `Standard Ende` differs from fallback. If only `Standard Ankunft` or `Standard Abfahrt` is changed, same-weekday history may override those defaults.
+- **PDF parity**: Preview/export are maintained in the same file but use different engines (HTML/WebView vs pdfmake). Every report layout change must update both paths.
+- **Automated tests**: There is no full app test suite. Current regression guards are small script checks for lucide icon touch handling and PDF signature alignment.
+
+---
+
+## 11. Out of scope for v1 (potential v2)
 
 - Cloud backup / sync
 - Multi-driver support
 - Company-side dashboard
 - Automatic monthly report scheduling
-- Push notification reminders to log trips
-- Dark mode
+- Cloud push notifications / server-driven reminders
+- Multi-page report layout refinements beyond the current paper-form approximation

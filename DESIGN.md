@@ -1,5 +1,5 @@
 # DESIGN.md — Stundennachweis App
-> Version 1.2 | Last updated: 2026-05-21
+> Version 1.3 | Last updated: 2026-05-22
 > Read alongside PRD.md. Claude Code must follow all rules in this file for every screen.
 
 ---
@@ -19,10 +19,10 @@ This is a work tool used briefly between shifts, sometimes with gloves, often in
 
 ## 2. Color tokens
 
-All colors defined in `theme.ts`. Never use raw hex values in screen components.
+All colors are defined in `theme.ts` as light and dark palettes. Screens must use `useThemeColors()` plus tokens from `theme.ts`. Avoid raw colors in screens except where a native API requires a literal (for example modal overlay rgba, `DateTimePicker` theme hints, or destructive pressed colors already present in legacy code).
 
 ```ts
-export const colors = {
+const light = {
   // Primary brand
   primary:        '#1A56DB',   // action blue — buttons, active states, links
   primaryPressed: '#1344B8',   // darker on press
@@ -50,6 +50,29 @@ export const colors = {
   error:    '#DC2626',         // errors, destructive actions
   border:   '#D1D5DB',         // input borders, dividers
   shadow:   'rgba(0,0,0,0.06)',// card shadows
+}
+
+const dark = {
+  primary:        '#3B82F6',
+  primaryPressed: '#2563EB',
+  bg: {
+    screen: '#0F172A',
+    card:   '#1E293B',
+    input:  '#1E293B',
+    subtle: '#334155',
+  },
+  text: {
+    primary:   '#F8FAFC',
+    secondary: '#94A3B8',
+    disabled:  '#475569',
+    inverse:   '#FFFFFF',
+    error:     '#EF4444',
+  },
+  success: '#22C55E',
+  warning: '#F59E0B',
+  error:   '#EF4444',
+  border:  '#334155',
+  shadow:  'rgba(0,0,0,0.3)',
 }
 ```
 
@@ -125,8 +148,9 @@ export const radii = {
 - Trip list: `FlatList` of `EntryCard` components, most recent date first
 - Sticky total bar: `formatGesamtzeit(totalMinutes)` — positioned above the tab bar
 - **FAB: "＋"** — primary color, bottom-right
-- **"Wiederholen" button**: secondary outlined button, positioned left of or above FAB when history exists. Label: "Wiederholen".
-- Empty state: "Noch keine Fahrten in diesem Monat" + "Testdaten laden" (in DEV)
+- No "Wiederholen" button. That shortcut was intentionally replaced by Settings defaults and recent Tour-Nr. chips.
+- Empty state: "Noch keine Fahrten in diesem Monat" only. There is no dev/test-data button in the current app.
+- Lucide icons inside Pressables and tab buttons must set `pointerEvents="none"` so standalone iOS hit-testing reaches the parent touch target.
 
 ### EntryScreen
 **Layout — single scrollable form, header with "Neue Fahrt" / "Fahrt bearbeiten" and Close (X) icon.**
@@ -135,7 +159,7 @@ export const radii = {
 1. **Datum**: large bold text, opens native `DateTimePicker`.
 2. **Time fields**: (Beginn, Ankunft, Abfahrt, Ende). Labels above, `TimeField` below.
    - `TimeField` opens an **inline DrumColumn picker** (hours/minutes).
-3. **Gesamtzeit live display**: Centered in a `bg.subtle` card. xxl bold text.
+3. **Gesamtzeit live display**: Centered in a card. Uses primary background when the calculated duration is valid and no form error is active; otherwise uses subtle/error styling.
 4. **Tour-Nr.**: `TourChips` (last 3 used) + `TextInput` (default keyboard).
 5. **Besonderheiten**: Hidden by default. Link "＋ Besonderheit hinzufügen" expands a multiline `TextInput`.
 6. **Speichern button**: Full width, pinned to bottom, always visible.
@@ -145,12 +169,16 @@ export const radii = {
 - Summary bar: count of trips + total duration.
 - **PDF preview**: Rendered via `WebView` using the HTML generator in `utils/generatePdf.ts`.
 - **"Bericht senden" button**: Full width, primary, triggers native system sharing sheet for the `pdfmake`-generated file.
+- Empty state: "Keine Fahrten in diesem Monat"; the send button appears only when the month has trips.
+- Report layout source of truth: `utils/generatePdf.ts` contains both `buildReportHtml` and `generatePdf`. Any change to report columns, signature position, margins, or footer must update both HTML and pdfmake paths.
+- Signature placement: signature image is left-aligned above the signature line in both preview and exported PDF.
 
 ### SettingsScreen
-- Grouped sections: "Fahrer", "Standard-Werte", "Erinnerung", "Unterschrift", "Daten", "Gefahrenzone".
+- Grouped sections: "Fahrer", "Standard-Werte", "Erinnerung", "Erscheinungsbild", "Unterschrift", "Daten", "Gefahrenzone".
 - **Fahrer**: `SettingRow` (Name, Vorname) opens a modal sheet with text input.
 - **Standard-Werte**: `SettingRow` items for Tour-Nr., Beginn, Ankunft, Abfahrt, and Ende.
 - **Erinnerung**: Toggle Switch for daily reminders + `SettingRow` for the Reminder Time.
+- **Erscheinungsbild**: `Farbmodus` row cycles through system -> light -> dark -> system.
 - **Unterschrift**: Dashed/solid border card. Tapping opens `SignaturePad` in landscape modal. Displays signature image if exists. "Unterschrift entfernen" link below.
 - **Daten**: "Daten exportieren" and "Daten importieren" rows.
   - Export: Shares a JSON file via system share.
@@ -161,13 +189,15 @@ export const radii = {
 
 ## 8. Interaction patterns
 
-- **Time entry**: Custom `DrumColumn` component used inline within `TimeField` (EntryScreen) and within a modal sheet (SettingsScreen). Minutes snap to 5-minute intervals.
+- **Time entry**: Custom `DrumColumn` component used inline within `TimeField` (EntryScreen) and within a modal sheet (SettingsScreen). Minutes snap to 5-minute intervals; exact-minute entry is not part of the current UI.
 - **Signature**: Landscape modal with `SignatureCanvas`. Orientation locked to landscape when open.
+- **Signature capture timing**: `SignatureCanvas` mounts only after landscape rotation settles to avoid drawing offsets.
 - **Reminders**: Uses `expo-notifications` to schedule local triggers. Permission requested on first activation.
+- **Appearance**: Stored in SQLite settings as `system`, `light`, or `dark`; applied with `Appearance.setColorScheme`.
 - **Save feedback**: `saving` state with `ActivityIndicator` on buttons.
 - **Validation**: Inline error text shown above the save button.
 - **Confirmation modals**: Used for deleting trips, importing data, and Danger Zone actions.
-- **Smart Prioritization**: New entries prioritize User Defaults (from Settings) > Weekday History (same day last week) > System Fallback (07:00-09:00).
+- **Smart Prioritization**: New entries prioritize Settings defaults. If the user has not changed time defaults, the app tries the most recent same-weekday history. Final fallback is 07:00 / 07:30 / 07:45 / 09:00.
 
 ---
 
@@ -197,3 +227,12 @@ Modal Stack:
 8. **Digital Signature is stored as base64 DataURL in settings.**
 9. **Backups are stored/shared as JSON files.**
 10. **PDF Engine**: Uses `pdfmake` for export and HTML for preview. All PDF styles are in `utils/generatePdf.ts`.
+11. **Preview/export parity**: Report preview and final PDF must remain visually aligned. Update both paths for any report layout change.
+12. **Icon touch handling**: `lucide-react-native` icons inside touch targets must use `pointerEvents="none"`.
+
+---
+
+## 11. Current design gaps
+
+- New-entry default detection currently considers only `Standard Beginn` and `Standard Ende` when deciding whether user defaults should override weekday-history fallback. If `Standard Ankunft` or `Standard Abfahrt` alone changes, weekday history may still win.
+- Report preview and final PDF are generated by separate engines, so parity relies on disciplined updates and regression checks.
