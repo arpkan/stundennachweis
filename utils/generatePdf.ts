@@ -272,7 +272,6 @@ export async function generatePdf(
     sigStack.push({
       image: settings.unterschrift,
       fit: [113, 30],
-      alignment: 'center',
       margin: [0, 0, 0, 2],
     });
   }
