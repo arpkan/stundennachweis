@@ -1,4 +1,5 @@
-import * as FileSystem from 'expo-file-system/legacy';
+import { FileSystem } from '@/utils/platform/filesystem';
+import { Platform } from 'react-native';
 import type { Trip } from '@/db/types';
 import type { Settings } from '@/db/types';
 import { formatGesamtzeit } from './format';
@@ -73,7 +74,7 @@ function tripRowHtml(t: Trip): string {
   </tr>`;
 }
 
-export function buildReportHtml(trips: Trip[], settings: Settings, month: number, year: number): string {
+export function buildReportHtml(trips: Trip[], settings: Settings, month: number, year: number, forNative = true): string {
   const monatJahr = `${MONTH_NAMES[month - 1]} ${year}`;
   const fahrerName = settings.fahrerName || '_______________';
   const totalMinutes = trips.reduce((sum, t) => sum + t.gesamtzeit, 0);
@@ -91,9 +92,9 @@ export function buildReportHtml(trips: Trip[], settings: Settings, month: number
   </div>`;
 
   const pageBlocks = pages.map((chunk, i) => {
-    const breakClass = i > 0 ? ' class="page-break"' : '';
     const isLast = i === pages.length - 1;
-    return `<div${breakClass}>
+    const breakClass = i > 0 ? ' page-break' : '';
+    return `<div class="page-sheet${breakClass}">
       ${i === 0
         ? `<h1>Stundennachweis für den Monat: ${monatJahr}</h1>
            <div class="meta">Name, Vorname: <strong>${fahrerName}</strong></div>`
@@ -104,24 +105,83 @@ export function buildReportHtml(trips: Trip[], settings: Settings, month: number
     </div>`;
   }).join('');
 
+  const FONT = `@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');`;
+
+  if (!forNative) {
+    // Body-only HTML for dangerouslySetInnerHTML on web.
+    // All selectors scoped to #sn-doc-root so no styles leak into the parent app.
+    // No <script> tag — initial fit() is applied by React useEffect in bericht.tsx.
+    return `<style>
+  ${FONT}
+  #sn-doc-root * { box-sizing: border-box; }
+  #sn-doc-root { color-scheme: light; padding: 8px; background: #b8b8b8; width: 1050px; transform-origin: 0 0; }
+  #sn-doc-root .page-sheet { background: #fff; color: #111; padding: 14mm 18mm 10mm; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.28); font-family: 'Roboto', Arial, sans-serif; font-size: 10pt; }
+  #sn-doc-root h1 { font-size: 14pt; text-align: center; margin: 0 0 5mm; color: #111; font-family: 'Roboto', Arial, sans-serif; }
+  #sn-doc-root .meta { margin-bottom: 5mm; font-size: 11pt; color: #111; font-family: 'Roboto', Arial, sans-serif; }
+  #sn-doc-root table { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: 'Roboto', Arial, sans-serif; }
+  #sn-doc-root th { background: #e4e4e4; color: #111; font-weight: bold; font-size: 9pt; padding: 3px 2px; border: 1px solid #555; text-align: center; white-space: normal; word-break: break-word; vertical-align: middle; }
+  #sn-doc-root td { padding: 3px 2px; border: 1px solid #555; font-size: 9pt; color: #111; text-align: center; vertical-align: middle; word-break: break-word; }
+  #sn-doc-root tr:nth-child(even) td { background: #f0f0f0; }
+  #sn-doc-root .page-number { text-align: right; font-size: 8pt; color: #555; margin-top: 4px; }
+  #sn-doc-root .footer { margin-top: 6mm; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11pt; color: #111; }
+  #sn-doc-root .signature-line { border-top: 1px solid #111; display: inline-block; width: 60mm; padding-top: 1mm; font-size: 9pt; }
+  @media print {
+    #sn-doc-root { background: #fff; padding: 0; }
+    #sn-doc-root .page-sheet { box-shadow: none; padding: 0; margin: 0; }
+    #sn-doc-root .page-break { page-break-before: always; }
+  }
+</style>
+<div id="sn-doc-root">${pageBlocks}</div>`;
+  }
+
   return `<!DOCTYPE html>
 <html lang="de"><head><meta charset="UTF-8"/>
+<meta name="color-scheme" content="light">
 <style>
+  ${FONT}
   @page { size: A4 landscape; margin: 20mm 20mm 12mm 20mm; }
   * { box-sizing: border-box; }
-  body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; color: #000; margin: 0; }
-  h1 { font-size: 14pt; text-align: center; margin: 0 0 5mm; }
-  .meta { margin-bottom: 5mm; font-size: 11pt; }
-  table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 0; }
-  th { background: #f0f0f0; font-weight: bold; font-size: 9pt; padding: 2mm 1.5mm; border: 1px solid #555; text-align: center; white-space: normal; word-break: break-word; vertical-align: middle; }
-  td { padding: 2mm 1.5mm; border: 1px solid #555; font-size: 10pt; text-align: center; vertical-align: middle; word-break: break-word; }
-  tr:nth-child(even) td { background: #fafafa; }
-  .page-number { text-align: right; font-size: 8pt; color: #666; margin-top: 2mm; }
-  .footer { margin-top: 6mm; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11pt; }
-  .signature-line { border-top: 1px solid #000; display: inline-block; width: 60mm; padding-top: 1mm; font-size: 9pt; }
-  @media print { .page-break { page-break-before: always; } }
+  html, body { margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; background: #b8b8b8; }
+  #doc-root { padding: 8px; background: #b8b8b8; transform-origin: 0 0; }
+  .page-sheet { background: #fff; color: #111; padding: 14mm 18mm 10mm; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.28); font-family: 'Roboto', Arial, sans-serif; font-size: 10pt; }
+  h1 { font-size: 14pt; text-align: center; margin: 0 0 5mm; color: #111; font-family: 'Roboto', Arial, sans-serif; }
+  .meta { margin-bottom: 5mm; font-size: 11pt; color: #111; font-family: 'Roboto', Arial, sans-serif; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: 'Roboto', Arial, sans-serif; }
+  th { background: #e4e4e4; color: #111; font-weight: bold; font-size: 9pt; padding: 3px 2px; border: 1px solid #555; text-align: center; white-space: normal; word-break: break-word; vertical-align: middle; }
+  td { padding: 3px 2px; border: 1px solid #555; font-size: 9pt; color: #111; text-align: center; vertical-align: middle; word-break: break-word; }
+  tr:nth-child(even) td { background: #f0f0f0; }
+  .page-number { text-align: right; font-size: 8pt; color: #555; margin-top: 4px; }
+  .footer { margin-top: 6mm; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11pt; color: #111; }
+  .signature-line { border-top: 1px solid #111; display: inline-block; width: 60mm; padding-top: 1mm; font-size: 9pt; }
+  @media print {
+    html, body, #doc-root { background: #fff; padding: 0; }
+    .page-sheet { box-shadow: none; padding: 0; margin: 0; }
+    .page-break { page-break-before: always; }
+  }
 </style>
-</head><body>${pageBlocks}</body></html>`;
+<script>
+  (function () {
+    if (window.ReactNativeWebView) return;
+    var PAGE_W = 1050;
+    var PAGE_H = 742;
+    function fit() {
+      var root = document.getElementById('doc-root');
+      if (!root) return;
+      root.style.width = PAGE_W + 'px';
+      var scaleW = window.innerWidth / PAGE_W;
+      var scaleH = window.innerHeight / PAGE_H;
+      var scale = Math.min(scaleW, scaleH, 0.98);
+      scale = Math.max(scale, 0.2);
+      root.style.transform = 'scale(' + scale + ')';
+      document.body.style.height = (root.scrollHeight * scale) + 'px';
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fit);
+    } else { fit(); }
+    window.addEventListener('orientationchange', function() { setTimeout(fit, 300); });
+  }());
+</script>
+</head><body><div id="doc-root">${pageBlocks}</div></body></html>`;
 }
 
 // ─── PDF file generation (pdfmake) ───────────────────────────────────────────
@@ -211,33 +271,49 @@ function patchForPdfmake() {
   g.__pdfmakePatched = true;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _pdfMakeReady: Promise<any> | null = null;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getPdfMake(): Promise<any> {
+  if (!_pdfMakeReady) {
+    _pdfMakeReady = Promise.all([
+      import('pdfmake/build/pdfmake'),
+      import('pdfmake/build/vfs_fonts'),
+    ]).then(([pdfMakeModule, vfsModule]: [any, any]) => {
+      const pdfMake = pdfMakeModule.default ?? pdfMakeModule;
+      const vfs = vfsModule.default ?? vfsModule;
+      pdfMake.addVirtualFileSystem(vfs);
+      pdfMake.fonts = {
+        Roboto: {
+          normal:      'Roboto-Regular.ttf',
+          bold:        'Roboto-Medium.ttf',
+          italics:     'Roboto-Italic.ttf',
+          bolditalics: 'Roboto-MediumItalic.ttf',
+        },
+      };
+      return pdfMake;
+    });
+  }
+  return _pdfMakeReady;
+}
+
+export function preloadPdfMake() {
+  getPdfMake();
+}
+
 export async function generatePdf(
   trips: Trip[],
   settings: Settings,
   month: number,
   year: number,
 ): Promise<string> {
-  patchForPdfmake();
+  if (Platform.OS !== 'web') {
+    patchForPdfmake();
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [pdfMakeModule, vfsModule] = await Promise.all([
-    import('pdfmake/build/pdfmake'),
-    import('pdfmake/build/vfs_fonts'),
-  ]) as [any, any];
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfMake: any = pdfMakeModule.default ?? pdfMakeModule;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vfs: any = vfsModule.default ?? vfsModule;
-  pdfMake.addVirtualFileSystem(vfs);
-  pdfMake.fonts = {
-    Roboto: {
-      normal:       'Roboto-Regular.ttf',
-      bold:         'Roboto-Medium.ttf',
-      italics:      'Roboto-Italic.ttf',
-      bolditalics:  'Roboto-MediumItalic.ttf',
-    },
-  };
+  const pdfMake: any = await getPdfMake();
 
   const monatJahr = `${MONTH_NAMES[month - 1]} ${year}`;
   const fahrerName = settings.fahrerName || '_______________';
@@ -349,13 +425,39 @@ export async function generatePdf(
     defaultStyle: { fontSize: 9, color: '#000000', font: 'Roboto' },
   };
 
+  if (Platform.OS === 'web') {
+    const fileName = buildFileName(settings, month, year);
+    const base64: string = await pdfMake.createPdf(docDefinition).getBase64();
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+
+    if (navigator.share && navigator.canShare) {
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Stundennachweis ${MONTH_NAMES[month - 1]} ${year}`,
+        });
+        return '';
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return '';
+  }
+
   const base64: string = await pdfMake.createPdf(docDefinition).getBase64();
-
   const fileName = buildFileName(settings, month, year);
-  const destUri = `${FileSystem.documentDirectory}${fileName}`;
-  await FileSystem.writeAsStringAsync(destUri, base64, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-
+  const destPath = `${FileSystem.documentDirectory}${fileName}`;
+  const destUri = await FileSystem.writeAsStringAsync(destPath, base64, { encoding: 'base64' });
   return destUri;
 }

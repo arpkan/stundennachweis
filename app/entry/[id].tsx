@@ -3,9 +3,9 @@ import {
   View, Text, TextInput, ScrollView, Pressable,
   KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
+import { useSQLiteContext } from '@/utils/platform/storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { DateTimePicker, type DateTimePickerEvent } from '@/utils/platform/date-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 
@@ -19,7 +19,7 @@ import {
 import {
   getTripById, insertTrip, updateTrip,
   getDefaultBeginFahrt, getRecentTourNumbers,
-  getAllSettings,
+  getAllSettings, getLastTrip,
 } from '@/db/queries';
 import type { NewTrip } from '@/db/types';
 
@@ -44,6 +44,13 @@ const DEFAULT_FORM: FormState = {
   tourNr: '',
   besonderheiten: '',
 };
+
+function nextWeekday(from: Date): Date {
+  const d = new Date(from);
+  d.setDate(d.getDate() + 1);
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+  return d;
+}
 
 export default function EntryScreen() {
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
@@ -103,7 +110,15 @@ export default function EntryScreen() {
         }
       }
 
-      const weekday = today.getDay();
+      // Default date: next weekday after the last entry, or today if no entries
+      let defaultDate = new Date(today);
+      const lastTrip = await getLastTrip(db);
+      if (lastTrip?.datumIso) {
+        const [y, mo, d] = lastTrip.datumIso.split('-').map(Number);
+        defaultDate = nextWeekday(new Date(y, mo - 1, d));
+      }
+
+      const weekday = defaultDate.getDay();
       const settings = await getAllSettings(db);
       
       // We check if the user has set a specific name or signature to assume settings are "touched",
@@ -139,8 +154,8 @@ export default function EntryScreen() {
 
       setForm({
         ...DEFAULT_FORM,
-        datum: formatDatum(today),
-        datumIso: formatDatumIso(today),
+        datum: formatDatum(defaultDate),
+        datumIso: formatDatumIso(defaultDate),
         beginFahrt:    baseTimes.beginn_fahrt,
         ankunftSchule: baseTimes.ankunft_schule,
         abfahrtSchule: baseTimes.abfahrt_schule,

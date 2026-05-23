@@ -1,6 +1,6 @@
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
-import * as DocumentPicker from 'expo-document-picker';
+import { FileSystem } from '@/utils/platform/filesystem';
+import { shareAsync } from '@/utils/platform/sharing';
+import * as DocumentPicker from '@/utils/platform/document-picker';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { Settings } from '@/db/types';
 import type { NewTrip } from '@/db/types';
@@ -31,14 +31,11 @@ export async function exportData(db: SQLiteDatabase): Promise<void> {
     trips: trips.map(({ id, ...rest }) => rest),
   };
 
+  const content = JSON.stringify(backup, null, 2);
   const date = new Date().toISOString().slice(0, 10);
   const path = `${FileSystem.documentDirectory}stundennachweis_backup_${date}.json`;
-
-  await FileSystem.writeAsStringAsync(path, JSON.stringify(backup, null, 2), {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
-
-  await Sharing.shareAsync(path, {
+  const uri = await FileSystem.writeAsStringAsync(path, content);
+  await shareAsync(uri, {
     mimeType: 'application/json',
     dialogTitle: 'Backup speichern oder teilen',
   });
@@ -61,9 +58,7 @@ export async function readBackupFile(): Promise<ImportPreview> {
     throw new Error('CANCELLED');
   }
 
-  const content = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
+  const content = await FileSystem.readAsStringAsync(result.assets[0].uri);
 
   let parsed: unknown;
   try {

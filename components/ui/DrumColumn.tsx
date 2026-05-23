@@ -18,34 +18,28 @@ export function DrumColumn({ items, value, onChange, formatter, width }: Props) 
   const scrollRef = useRef<ScrollView>(null);
   const [activeIdx, setActiveIdx] = useState(() => Math.max(0, items.indexOf(value)));
   const isScrollingRef = useRef(false);
+  const webScrollY = useRef(0);
+  const webScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isProgrammatic = useRef(false);
 
   // Scroll to value when it changes externally
   useEffect(() => {
     if (isScrollingRef.current) return;
     const idx = items.indexOf(value);
     if (idx < 0) return;
-    
-    // Only scroll if we are not already at the correct position
     setActiveIdx(idx);
     scrollRef.current?.scrollTo({ y: idx * ITEM_H, animated: false });
   }, [value, items]);
 
+  const commitIdx = (idx: number) => {
+    setActiveIdx(idx);
+    if (items[idx] !== value) onChange(items[idx]);
+    setTimeout(() => { isScrollingRef.current = false; }, 100);
+  };
+
   const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
-    const idx = Math.max(0, Math.min(items.length - 1, Math.round(y / ITEM_H)));
-    
-    // Immediate local feedback
-    setActiveIdx(idx);
-    
-    // Only trigger change if it actually changed to avoid unnecessary parent re-renders
-    if (items[idx] !== value) {
-      onChange(items[idx]);
-    }
-    
-    // Small delay before allowing external scrolls again to let parent state settle
-    setTimeout(() => {
-      isScrollingRef.current = false;
-    }, 100);
+    commitIdx(Math.max(0, Math.min(items.length - 1, Math.round(y / ITEM_H))));
   };
 
   return (
@@ -66,15 +60,32 @@ export function DrumColumn({ items, value, onChange, formatter, width }: Props) 
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_H}
-        decelerationRate="fast"
+        snapToInterval={Platform.OS !== 'web' ? ITEM_H : undefined}
+        decelerationRate={Platform.OS !== 'web' ? 'fast' : undefined}
         nestedScrollEnabled
         contentContainerStyle={{ paddingVertical: ITEM_H }}
         onScrollBeginDrag={() => { isScrollingRef.current = true; }}
         onMomentumScrollBegin={() => { isScrollingRef.current = true; }}
         onMomentumScrollEnd={handleScrollEnd}
+        scrollEventThrottle={Platform.OS === 'web' ? 16 : undefined}
+        onScroll={Platform.OS === 'web' ? (e) => {
+          if (isProgrammatic.current) return;
+          isScrollingRef.current = true;
+          webScrollY.current = e.nativeEvent.contentOffset.y;
+          if (webScrollTimer.current) clearTimeout(webScrollTimer.current);
+          webScrollTimer.current = setTimeout(() => {
+            const idx = Math.max(0, Math.min(items.length - 1, Math.round(webScrollY.current / ITEM_H)));
+            setActiveIdx(idx);
+            if (items[idx] !== value) onChange(items[idx]);
+            isProgrammatic.current = true;
+            scrollRef.current?.scrollTo({ y: idx * ITEM_H, animated: true });
+            setTimeout(() => {
+              isProgrammatic.current = false;
+              isScrollingRef.current = false;
+            }, 300);
+          }, 150);
+        } : undefined}
         onScrollEndDrag={(e) => {
-          // On iOS, if there's no momentum, handle it immediately
           if (Platform.OS === 'ios' && Math.abs(e.nativeEvent.velocity?.y ?? 0) < 0.1) {
             handleScrollEnd(e);
           } else if (Platform.OS === 'android') {

@@ -1,4 +1,16 @@
+import { createContext, useContext } from 'react';
 import { useColorScheme } from 'react-native';
+
+export type ThemeMode = 'light' | 'dark' | 'system';
+
+export const ThemeContext = createContext<{
+  mode: ThemeMode;
+  setMode: (m: ThemeMode) => void;
+}>({ mode: 'system', setMode: () => {} });
+
+export function useThemeMode() {
+  return useContext(ThemeContext);
+}
 
 const light = {
   primary:        '#1A56DB',
@@ -56,8 +68,10 @@ const dark = {
 export const colors = light;
 
 export function useThemeColors() {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? dark : light;
+  const { mode } = useThemeMode();
+  const systemScheme = useColorScheme();
+  const resolved = mode === 'system' ? systemScheme : mode;
+  return resolved === 'dark' ? dark : light;
 }
 
 export const typography = {

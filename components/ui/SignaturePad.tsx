@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, Pressable, Modal, ActivityIndicator } from 'react-native';
 import SignatureCanvas, { type SignatureViewRef } from 'react-native-signature-canvas';
-import * as ScreenOrientation from 'expo-screen-orientation';
+import { ScreenOrientation } from '@/utils/platform/orientation';
 import { useThemeColors, typography, spacing, radii } from '@/theme';
 
 type Props = {

@@ -1,18 +1,49 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Pressable, ActivityIndicator, Alert } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
+import { View, Text, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
+import { useSQLiteContext } from '@/utils/platform/storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { WebView } from 'react-native-webview';
-import * as Sharing from 'expo-sharing';
+import { shareAsync } from '@/utils/platform/sharing';
 import { ChevronLeft, ChevronRight, Send } from 'lucide-react-native';
 
 import { useThemeColors, typography, spacing, radii } from '@/theme';
 import { getTripsForMonth, getAllSettings } from '@/db/queries';
-import { buildReportHtml, generatePdf } from '@/utils/generatePdf';
+import { buildReportHtml, generatePdf, preloadPdfMake } from '@/utils/generatePdf';
 import { formatGesamtzeit } from '@/utils/format';
 import { MonthYearPicker } from '@/components/ui/MonthYearPicker';
 import type { Trip } from '@/db/types';
 import type { Settings } from '@/db/types';
+
+const HtmlPreview = ({ html }: { html: string }) => {
+  const wrapperRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const root = wrapper.querySelector('#sn-doc-root') as HTMLElement | null;
+    if (!root) return;
+    const PAGE_W = 1050;
+    const scale = Math.max(Math.min(wrapper.clientWidth / PAGE_W, 0.98), 0.2);
+    const layoutH = root.scrollHeight;
+    root.style.transform = `scale(${scale})`;
+    // Negative margins make the container see the visual (scaled) dimensions,
+    // so overflow:auto shows scrollbars only when user zooms in beyond initial fit.
+    root.style.marginRight = `${-(PAGE_W * (1 - scale))}px`;
+    root.style.marginBottom = `${-(layoutH * (1 - scale))}px`;
+  }, [html]);
+
+  if (Platform.OS === 'web') {
+    return (
+      <div
+        ref={wrapperRef as any}
+        style={{ flex: 1, overflow: 'auto', background: '#b8b8b8' } as any}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  }
+  const { WebView } = require('react-native-webview');
+  return <WebView source={{ html }} style={{ flex: 1 }} scrollEnabled originWhitelist={['*']} />;
+};
 
 const MONTH_NAMES = [
   'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
@@ -44,6 +75,10 @@ export default function BerichtScreen() {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
+  React.useEffect(() => {
+    if (Platform.OS === 'web') preloadPdfMake();
+  }, []);
+
   const prevMonth = () => {
     if (month === 1) { setMonth(12); setYear((y) => y - 1); }
     else setMonth((m) => m - 1);
@@ -61,20 +96,28 @@ export default function BerichtScreen() {
     setSending(true);
     try {
       const uri = await generatePdf(trips, settings!, month, year);
-      await Sharing.shareAsync(uri, {
-        mimeType: 'application/pdf',
-        dialogTitle: `Stundennachweis ${MONTH_NAMES[month - 1]} ${year}`,
-        UTI: 'com.adobe.pdf',
-      });
+      if (uri) {
+        await shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `Stundennachweis ${MONTH_NAMES[month - 1]} ${year}`,
+          UTI: 'com.adobe.pdf',
+        });
+      }
     } catch (e) {
-      Alert.alert('Fehler', `PDF konnte nicht erstellt werden.\n${e instanceof Error ? e.message : String(e)}`);
+      if (e instanceof Error && e.name === 'AbortError') return;
+      const msg = `PDF konnte nicht erstellt werden.\n${e instanceof Error ? e.message : String(e)}`;
+      if (Platform.OS === 'web') {
+        window.alert(msg);
+      } else {
+        Alert.alert('Fehler', msg);
+      }
     } finally {
       setSending(false);
     }
   };
 
   const totalMinutes = trips.reduce((sum, t) => sum + t.gesamtzeit, 0);
-  const previewHtml = settings ? buildReportHtml(trips, settings, month, year) : '';
+  const previewHtml = settings ? buildReportHtml(trips, settings, month, year, Platform.OS !== 'web') : '';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg.screen }}>
@@ -135,12 +178,7 @@ export default function BerichtScreen() {
           </View>
 
           {/* HTML preview */}
-          <WebView
-            source={{ html: previewHtml }}
-            style={{ flex: 1 }}
-            scrollEnabled
-            originWhitelist={['*']}
-          />
+          <HtmlPreview html={previewHtml} />
         </>
       )}
 

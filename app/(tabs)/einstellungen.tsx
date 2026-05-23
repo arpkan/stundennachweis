@@ -3,17 +3,19 @@ import {
   View, Text, TextInput, Pressable, ScrollView, Image,
   Modal, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
+import { useSQLiteContext } from '@/utils/platform/storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { Switch, Alert, Appearance } from 'react-native';
-import { ChevronRight, X, PenLine, Upload, Download, Trash2, AlertTriangle, Bell, Moon } from 'lucide-react-native';
-import { useThemeColors, typography, spacing, radii, shadows } from '@/theme';
+import { Switch, Alert } from 'react-native';
+import { ChevronRight, X, PenLine, Upload, Download, Trash2, AlertTriangle, Moon, Smartphone, Info } from 'lucide-react-native';
+import { useThemeColors, useThemeMode, typography, spacing, radii, shadows } from '@/theme';
 import { getAllSettings, setSetting, deleteAllTrips, clearAllData } from '@/db/queries';
-import { SignaturePad } from '@/components/ui/SignaturePad';
+import { SignaturePad } from '@/utils/platform/signature';
 import { exportData, readBackupFile, importData, type ImportPreview } from '@/utils/backup';
 import { DrumColumn } from '@/components/ui/DrumColumn';
 import { parseTime, formatTime } from '@/utils/format';
-import { updateReminders } from '@/utils/notifications';
+import { updateReminders } from '@/utils/platform/notifications';
+import { useInstallPrompt } from '@/hooks/useInstallPrompt';
+import { IosInstallOverlay } from '@/components/ui/IosInstallOverlay';
 import type { Settings } from '@/db/types';
 
 type EditingField = {
@@ -39,6 +41,11 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
 const pad = (n: number) => String(n).padStart(2, '0');
 
+// Reminders only work reliably on native (expo-notifications) and desktop web
+// (browser stays open). On mobile web the JS timer stops when the app is closed.
+const showReminders = Platform.OS !== 'web'
+  || (typeof navigator !== 'undefined' && !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+
 export default function EinstellungenScreen() {
   const db = useSQLiteContext();
   const colors = useThemeColors();
@@ -49,6 +56,9 @@ export default function EinstellungenScreen() {
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [backupBusy, setBackupBusy] = useState(false);
   const [resetModal, setResetModal] = useState<'trips' | 'all' | null>(null);
+  const [iosGuideVisible, setIosGuideVisible] = useState(false);
+  const { canInstall, canPrompt, isIos, isStandalone, promptInstall } = useInstallPrompt();
+  const { setMode } = useThemeMode();
 
   const sectionLabel = {
     fontSize: typography.sizes.sm,
@@ -76,9 +86,8 @@ export default function EinstellungenScreen() {
     if (!editing) return;
     await setSetting(db, editing.key, draft.trim());
     
-    // If we updated the reminder time, reschedule it
     if (editing.key === 'reminderTime' && settings?.reminderEnabled) {
-      await updateReminders(true, draft.trim());
+      try { await updateReminders(true, draft.trim()); } catch {}
     }
     
     setEditing(null);
@@ -86,9 +95,15 @@ export default function EinstellungenScreen() {
   };
 
   const handleReminderToggle = async (enabled: boolean) => {
-    const value = enabled ? 'true' : 'false';
-    await setSetting(db, 'reminderEnabled', value);
-    await updateReminders(enabled, settings?.reminderTime ?? '17:00');
+    if (enabled && Platform.OS === 'web' && 'Notification' in window) {
+      if ((Notification as any).permission === 'default') {
+        // Request while still in user-gesture context (before any await breaks the chain).
+        await Notification.requestPermission();
+      }
+      // If 'denied': proceed anyway — toggle saves, notifications just won't fire.
+    }
+    await setSetting(db, 'reminderEnabled', enabled ? 'true' : 'false');
+    try { await updateReminders(enabled, settings?.reminderTime ?? '17:00'); } catch {}
     load();
   };
 
@@ -98,9 +113,9 @@ export default function EinstellungenScreen() {
     let next: 'light' | 'dark' | 'system' = 'system';
     if (current === 'system') next = 'light';
     else if (current === 'light') next = 'dark';
-    
+
     await setSetting(db, 'theme', next);
-    Appearance.setColorScheme(next === 'system' ? null : next);
+    setMode(next);
     load();
   };
 
@@ -229,8 +244,8 @@ export default function EinstellungenScreen() {
         </View>
       </View>
 
-      {/* Reminder section */}
-      <View>
+      {/* Reminder section — hidden on mobile web where JS stops when app is closed */}
+      {showReminders && <View>
         <Text style={sectionLabel}>Erinnerung</Text>
         <View style={{ borderRadius: radii.md, overflow: 'hidden', ...shadows.card }}>
           <View
@@ -269,7 +284,7 @@ export default function EinstellungenScreen() {
             />
           )}
         </View>
-      </View>
+      </View>}
 
       {/* Appearance section */}
       <View>
@@ -412,8 +427,59 @@ export default function EinstellungenScreen() {
               </Text>
             </View>
           </Pressable>
+
+          <View style={{ flexDirection: 'row', gap: spacing.sm, padding: spacing.sm }}>
+            <Info size={16} color={colors.warning} pointerEvents="none" style={{ marginTop: 2 }} />
+            <Text style={{ flex: 1, fontSize: typography.sizes.sm, color: colors.text.secondary, lineHeight: typography.sizes.sm * 1.5 }}>
+              Deine Daten werden nur lokal auf diesem Gerät gespeichert. Verwende regelmäßig „Daten exportieren", um ein Backup zu erstellen.
+            </Text>
+          </View>
         </View>
       </View>
+
+      {/* App installieren – web only, not shown when already running as installed PWA */}
+      {Platform.OS === 'web' && (
+        <View>
+          <Text style={sectionLabel}>App installieren</Text>
+          <View style={{ borderRadius: radii.md, overflow: 'hidden', ...shadows.card }}>
+            <Pressable
+              onPress={() => {
+                if (isIos) {
+                  setIosGuideVisible(true);
+                } else if (canPrompt) {
+                  promptInstall();
+                } else {
+                  window.alert('Zum Startbildschirm hinzufügen:\n\n1. Tippe auf das Menü deines Browsers (⋮ oder ☰)\n2. Tippe auf „Mehr"\n3. Wähle „Zum Startbildschirm hinzufügen"\n4. Bestätige mit „Hinzufügen"');
+                }
+              }}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.md,
+                paddingHorizontal: spacing.base,
+                paddingVertical: spacing.md,
+                minHeight: 64,
+                backgroundColor: pressed ? colors.bg.subtle : colors.bg.card,
+              })}
+            >
+              <Smartphone size={22} color={colors.primary} pointerEvents="none" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary }}>
+                  Zum Home-Bildschirm hinzufügen
+                </Text>
+                <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary }}>
+                  {isIos ? 'Anleitung anzeigen' : canPrompt ? 'Schneller Zugriff als App' : 'Anleitung anzeigen'}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={colors.text.disabled} pointerEvents="none" />
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      <Modal visible={iosGuideVisible} transparent animationType="fade">
+        <IosInstallOverlay visible={iosGuideVisible} onClose={() => setIosGuideVisible(false)} />
+      </Modal>
 
       {/* Import confirmation modal */}
       <Modal visible={importPreview !== null} transparent animationType="slide">

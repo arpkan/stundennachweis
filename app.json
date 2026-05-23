@@ -32,7 +32,10 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Stundennachweis",
+      "themeColor": "#1A56DB",
+      "backgroundColor": "#ffffff"
     },
     "plugins": [
       "expo-router",

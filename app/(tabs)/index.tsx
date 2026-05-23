@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, Pressable, Modal, ActivityIndicator,
+  View, Text, FlatList, Pressable, Modal, ActivityIndicator, Platform,
 } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
+import { useSQLiteContext } from '@/utils/platform/storage';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
@@ -10,6 +10,9 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
 import { useThemeColors, typography, spacing, radii, shadows } from '@/theme';
 import { EntryCard } from '@/components/ui/EntryCard';
 import { MonthYearPicker } from '@/components/ui/MonthYearPicker';
+import { InstallBanner } from '@/components/ui/InstallBanner';
+import { DataInfoBanner } from '@/components/ui/DataInfoBanner';
+import { IosInstallOverlay } from '@/components/ui/IosInstallOverlay';
 import { getTripsForMonth, deleteTrip } from '@/db/queries';
 import { formatGesamtzeit } from '@/utils/format';
 import type { Trip } from '@/db/types';
@@ -25,6 +28,7 @@ export default function HomeScreen() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [iosGuideVisible, setIosGuideVisible] = useState(false);
 
   const loadTrips = useCallback(async () => {
     setLoading(true);
@@ -81,6 +85,9 @@ export default function HomeScreen() {
           <ChevronRight size={24} color={colors.text.primary} pointerEvents="none" />
         </Pressable>
       </View>
+
+      {Platform.OS === 'web' && <InstallBanner onIosGuide={() => setIosGuideVisible(true)} />}
+      {Platform.OS === 'web' && <DataInfoBanner />}
 
       {/* Trip list */}
       {loading ? (
@@ -214,6 +221,8 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
+
+      <IosInstallOverlay visible={iosGuideVisible} onClose={() => setIosGuideVisible(false)} />
     </View>
   );
 }
