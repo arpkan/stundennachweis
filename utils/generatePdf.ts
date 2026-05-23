@@ -142,7 +142,7 @@ export function buildReportHtml(trips: Trip[], settings: Settings, month: number
   @page { size: A4 landscape; margin: 20mm 20mm 12mm 20mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; background: #b8b8b8; }
-  #doc-root { padding: 8px; background: #b8b8b8; transform-origin: 0 0; }
+  #doc-root { padding: 16px; background: #b8b8b8; transform-origin: 0 0; }
   .page-sheet { background: #fff; color: #111; padding: 14mm 18mm 10mm; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.28); font-family: 'Roboto', Arial, sans-serif; font-size: 10pt; }
   h1 { font-size: 14pt; text-align: center; margin: 0 0 5mm; color: #111; font-family: 'Roboto', Arial, sans-serif; }
   .meta { margin-bottom: 5mm; font-size: 11pt; color: #111; font-family: 'Roboto', Arial, sans-serif; }
