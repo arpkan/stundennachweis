@@ -4,10 +4,12 @@ import type { Trip, NewTrip, Settings } from './types';
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function rowToTrip(row: Record<string, unknown>): Trip {
+  const datumIso = row.datum_iso as string;
   return {
     id:              row.id as number,
     datum:           row.datum as string,
-    datumIso:        row.datum_iso as string,
+    datumIso,
+    berichtMonat:    (row.bericht_monat as string | null) ?? datumIso.slice(0, 7),
     beginFahrt:      row.beginn_fahrt as string,
     ankunftSchule:   row.ankunft_schule as string,
     abfahrtSchule:   row.abfahrt_schule as string,
@@ -26,10 +28,10 @@ export async function getTripsForMonth(
   month: number,
   year: number,
 ): Promise<Trip[]> {
-  const prefix = `${year}-${String(month).padStart(2, '0')}`;
+  const bm = `${year}-${String(month).padStart(2, '0')}`;
   const rows = await db.getAllAsync<Record<string, unknown>>(
-    `SELECT * FROM trips WHERE datum_iso LIKE ? ORDER BY datum_iso ASC`,
-    [`${prefix}-%`],
+    `SELECT * FROM trips WHERE bericht_monat = ? ORDER BY datum_iso ASC`,
+    [bm],
   );
   return rows.map(rowToTrip);
 }
@@ -49,14 +51,16 @@ export async function insertTrip(
   db: SQLite.SQLiteDatabase,
   trip: NewTrip,
 ): Promise<number> {
+  const berichtMonat = trip.berichtMonat || trip.datumIso.slice(0, 7);
   const result = await db.runAsync(
     `INSERT INTO trips
-       (datum, datum_iso, beginn_fahrt, ankunft_schule, abfahrt_schule,
+       (datum, datum_iso, bericht_monat, beginn_fahrt, ankunft_schule, abfahrt_schule,
         ende_fahrt, gesamtzeit, tour_nr, besonderheiten, aufgezeichnet_am)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       trip.datum,
       trip.datumIso,
+      berichtMonat,
       trip.beginFahrt,
       trip.ankunftSchule,
       trip.abfahrtSchule,
@@ -75,15 +79,17 @@ export async function updateTrip(
   id: number,
   trip: NewTrip,
 ): Promise<void> {
+  const berichtMonat = trip.berichtMonat || trip.datumIso.slice(0, 7);
   await db.runAsync(
     `UPDATE trips SET
-       datum = ?, datum_iso = ?, beginn_fahrt = ?, ankunft_schule = ?,
+       datum = ?, datum_iso = ?, bericht_monat = ?, beginn_fahrt = ?, ankunft_schule = ?,
        abfahrt_schule = ?, ende_fahrt = ?, gesamtzeit = ?,
        tour_nr = ?, besonderheiten = ?, aufgezeichnet_am = ?
      WHERE id = ?`,
     [
       trip.datum,
       trip.datumIso,
+      berichtMonat,
       trip.beginFahrt,
       trip.ankunftSchule,
       trip.abfahrtSchule,

@@ -2,6 +2,7 @@ export type Trip = {
   id: number;
   datum: string;        // DD.MM.YYYY — display format
   datumIso: string;     // YYYY-MM-DD — used for sorting and filtering
+  berichtMonat: string; // YYYY-MM — which report this trip belongs to
   beginFahrt: string;   // HH:MM
   ankunftSchule: string; // HH:MM
   abfahrtSchule: string; // HH:MM
@@ -12,7 +13,8 @@ export type Trip = {
   aufgezeichnetAm: string; // DD.MM.YYYY
 };
 
-export type NewTrip = Omit<Trip, 'id'>;
+// berichtMonat is optional for backwards-compatible backup restore
+export type NewTrip = Omit<Trip, 'id' | 'berichtMonat'> & { berichtMonat?: string };
 
 export type Settings = {
   fahrerName: string;

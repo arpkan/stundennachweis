@@ -23,9 +23,15 @@ import {
 } from '@/db/queries';
 import type { NewTrip } from '@/db/types';
 
+const MONTH_NAMES = [
+  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+];
+
 type FormState = {
   datum: string;
   datumIso: string;
+  berichtMonat: string; // YYYY-MM
   beginFahrt: string;
   ankunftSchule: string;
   abfahrtSchule: string;
@@ -37,6 +43,7 @@ type FormState = {
 const DEFAULT_FORM: FormState = {
   datum: '',
   datumIso: '',
+  berichtMonat: '',
   beginFahrt: '07:00',
   ankunftSchule: '07:30',
   abfahrtSchule: '07:45',
@@ -53,7 +60,7 @@ function nextWeekday(from: Date): Date {
 }
 
 export default function EntryScreen() {
-  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
+  const { id, from, bm } = useLocalSearchParams<{ id: string; from?: string; bm?: string }>();
   const isNew = id === 'new';
   const db = useSQLiteContext();
   const router = useRouter();
@@ -80,6 +87,7 @@ export default function EntryScreen() {
           setForm({
             datum: trip.datum,
             datumIso: trip.datumIso,
+            berichtMonat: trip.berichtMonat,
             beginFahrt: trip.beginFahrt,
             ankunftSchule: trip.ankunftSchule,
             abfahrtSchule: trip.abfahrtSchule,
@@ -96,9 +104,11 @@ export default function EntryScreen() {
       if (from) {
         const source = await getTripById(db, Number(from));
         if (source) {
+          const bmForNew = bm || formatDatumIso(today).slice(0, 7);
           setForm({
             datum: formatDatum(today),
             datumIso: formatDatumIso(today),
+            berichtMonat: bmForNew,
             beginFahrt: source.beginFahrt,
             ankunftSchule: source.ankunftSchule,
             abfahrtSchule: source.abfahrtSchule,
@@ -156,6 +166,7 @@ export default function EntryScreen() {
         ...DEFAULT_FORM,
         datum: formatDatum(defaultDate),
         datumIso: formatDatumIso(defaultDate),
+        berichtMonat: bm || formatDatumIso(defaultDate).slice(0, 7),
         beginFahrt:    baseTimes.beginn_fahrt,
         ankunftSchule: baseTimes.ankunft_schule,
         abfahrtSchule: baseTimes.abfahrt_schule,
@@ -222,9 +233,11 @@ export default function EntryScreen() {
       const today = new Date();
       
       // Ensure we have all required fields even if state is slightly stale
+      const datumIso = form.datumIso || formatDatumIso(today);
       const finalTrip: NewTrip = {
         datum: form.datum || formatDatum(today),
-        datumIso: form.datumIso || formatDatumIso(today),
+        datumIso,
+        berichtMonat: form.berichtMonat || datumIso.slice(0, 7),
         beginFahrt: form.beginFahrt,
         ankunftSchule: form.ankunftSchule,
         abfahrtSchule: form.abfahrtSchule,
@@ -358,6 +371,15 @@ export default function EntryScreen() {
               />
             </View>
           )}
+          {(() => {
+            if (!form.berichtMonat) return null;
+            const [bmY, bmM] = form.berichtMonat.split('-').map(Number);
+            return (
+              <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary, marginTop: spacing.xs }}>
+                Abrechnungsmonat: {MONTH_NAMES[bmM - 1]} {bmY}
+              </Text>
+            );
+          })()}
         </View>
 
         {/* Time fields */}

@@ -23,4 +23,12 @@ export async function migrateDatabase(db: SQLite.SQLiteDatabase): Promise<void> 
       value TEXT NOT NULL
     );
   `);
+
+  // Migration 1: add bericht_monat (YYYY-MM) — which report a trip belongs to
+  const versionRow = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+  if ((versionRow?.user_version ?? 0) < 1) {
+    await db.execAsync('ALTER TABLE trips ADD COLUMN bericht_monat TEXT');
+    await db.execAsync("UPDATE trips SET bericht_monat = substr(datum_iso, 1, 7) WHERE bericht_monat IS NULL");
+    await db.execAsync('PRAGMA user_version = 1');
+  }
 }

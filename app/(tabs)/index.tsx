@@ -155,7 +155,7 @@ export default function HomeScreen() {
 
       {/* FAB */}
       <Pressable
-        onPress={() => router.push('/entry/new')}
+        onPress={() => router.push(`/entry/new?bm=${year}-${String(month).padStart(2, '0')}`)}
         style={({ pressed }) => ({
           position: 'absolute',
           bottom: trips.length > 0 ? 104 : 24,
