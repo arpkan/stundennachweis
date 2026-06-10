@@ -55,7 +55,9 @@ theme.ts                # ALL design tokens
 
 ### Data model (expo-sqlite)
 
-**Trip entry fields:** `datum` (DD.MM.YYYY), `beginn_fahrt` (HH:MM), `ankunft_schule` (HH:MM), `abfahrt_schule` (HH:MM), `ende_fahrt` (HH:MM), `gesamtzeit` (calculated, stored as minutes), `tour_nr` (text), `besonderheiten` (optional text), `aufgezeichnet_am` (auto today).
+**Trip entry fields:** `datum` (DD.MM.YYYY), `beginn_fahrt` (HH:MM), `ankunft_schule` (HH:MM, empty for Sonderfahrt), `abfahrt_schule` (HH:MM, empty for Sonderfahrt), `ende_fahrt` (HH:MM), `gesamtzeit` (calculated, stored as minutes), `ist_sonderfahrt` (0/1), `tour_nr` (text), `besonderheiten` (optional text), `aufgezeichnet_am` (auto today), `bericht_monat` (YYYY-MM — which report the trip belongs to, independent of trip date).
+
+**Gesamtzeit formula:** Normal = `(Ankunft−Beginn) + (Ende−Abfahrt)`. Sonderfahrt = `Ende−Beginn`. Never enter manually.
 
 **Settings:** driver name, digital signature, default tour/times, reminder enabled/time.
 
@@ -75,7 +77,7 @@ theme.ts                # ALL design tokens
 6. **Tour-Nr. chips**: always render last 3 used values as quick-tap chips above the text input
 7. **Besonderheiten collapsed by default** — never open on new entry
 8. **"Wiederholen" button** is replaced by global defaults in settings
-9. **Gesamtzeit is calculated and read-only** — never manually entered
+9. **Gesamtzeit is calculated and read-only** — normal: `(Ankunft−Beginn)+(Ende−Abfahrt)`; Sonderfahrt: `Ende−Beginn`
 10. **All primitives from `components/ui/`** — no inline component definitions
 11. **Offline-first** — no feature requires a network connection
 12. **No `Alert.alert()` for validation** — inline field errors only

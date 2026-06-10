@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, TextInput, ScrollView, Pressable,
+  View, Text, TextInput, ScrollView, Pressable, Switch,
   KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { useSQLiteContext } from '@/utils/platform/storage';
@@ -32,6 +32,7 @@ type FormState = {
   datum: string;
   datumIso: string;
   berichtMonat: string; // YYYY-MM
+  istSonderfahrt: boolean;
   beginFahrt: string;
   ankunftSchule: string;
   abfahrtSchule: string;
@@ -44,6 +45,7 @@ const DEFAULT_FORM: FormState = {
   datum: '',
   datumIso: '',
   berichtMonat: '',
+  istSonderfahrt: false,
   beginFahrt: '07:00',
   ankunftSchule: '07:30',
   abfahrtSchule: '07:45',
@@ -88,9 +90,10 @@ export default function EntryScreen() {
             datum: trip.datum,
             datumIso: trip.datumIso,
             berichtMonat: trip.berichtMonat,
+            istSonderfahrt: trip.istSonderfahrt,
             beginFahrt: trip.beginFahrt,
-            ankunftSchule: trip.ankunftSchule,
-            abfahrtSchule: trip.abfahrtSchule,
+            ankunftSchule: trip.ankunftSchule || '07:30',
+            abfahrtSchule: trip.abfahrtSchule || '07:45',
             endeFahrt: trip.endeFahrt,
             tourNr: trip.tourNr,
             besonderheiten: trip.besonderheiten ?? '',
@@ -109,9 +112,10 @@ export default function EntryScreen() {
             datum: formatDatum(today),
             datumIso: formatDatumIso(today),
             berichtMonat: bmForNew,
+            istSonderfahrt: source.istSonderfahrt,
             beginFahrt: source.beginFahrt,
-            ankunftSchule: source.ankunftSchule,
-            abfahrtSchule: source.abfahrtSchule,
+            ankunftSchule: source.ankunftSchule || '07:30',
+            abfahrtSchule: source.abfahrtSchule || '07:45',
             endeFahrt: source.endeFahrt,
             tourNr: source.tourNr,
             besonderheiten: '',
@@ -177,7 +181,7 @@ export default function EntryScreen() {
     load();
   }, []);
 
-  const set = useCallback((field: keyof FormState, value: string) => {
+  const set = useCallback((field: keyof FormState, value: string | boolean) => {
     setForm((prev) => prev ? { ...prev, [field]: value } : prev);
   }, []);
 
@@ -212,15 +216,20 @@ export default function EntryScreen() {
 
     // 2. Chronological sequence validation
     const t1 = parseTime(form.beginFahrt).hours * 60 + parseTime(form.beginFahrt).minutes;
-    const t2 = parseTime(form.ankunftSchule).hours * 60 + parseTime(form.ankunftSchule).minutes;
-    const t3 = parseTime(form.abfahrtSchule).hours * 60 + parseTime(form.abfahrtSchule).minutes;
     const t4 = parseTime(form.endeFahrt).hours * 60 + parseTime(form.endeFahrt).minutes;
 
-    if (t2 < t1) { setError('Ankunft Schule darf nicht vor Beginn liegen'); return; }
-    if (t3 < t2) { setError('Abfahrt Schule darf nicht vor Ankunft liegen'); return; }
-    if (t4 < t3) { setError('Ende Fahrt darf nicht vor Abfahrt liegen'); return; }
+    let gz: number;
+    if (form.istSonderfahrt) {
+      gz = t4 - t1;
+    } else {
+      const t2 = parseTime(form.ankunftSchule).hours * 60 + parseTime(form.ankunftSchule).minutes;
+      const t3 = parseTime(form.abfahrtSchule).hours * 60 + parseTime(form.abfahrtSchule).minutes;
+      if (t2 < t1) { setError('Ankunft Schule darf nicht vor Beginn liegen'); return; }
+      if (t3 < t2) { setError('Abfahrt Schule darf nicht vor Ankunft liegen'); return; }
+      if (t4 < t3) { setError('Ende Fahrt darf nicht vor Abfahrt liegen'); return; }
+      gz = (t2 - t1) + (t4 - t3);
+    }
 
-    const gz = t4 - t1;
     if (gz <= 0) {
       setError('Ende Fahrt muss nach Beginn Fahrt liegen');
       return;
@@ -238,9 +247,10 @@ export default function EntryScreen() {
         datum: form.datum || formatDatum(today),
         datumIso,
         berichtMonat: form.berichtMonat || datumIso.slice(0, 7),
+        istSonderfahrt: form.istSonderfahrt,
         beginFahrt: form.beginFahrt,
-        ankunftSchule: form.ankunftSchule,
-        abfahrtSchule: form.abfahrtSchule,
+        ankunftSchule: form.istSonderfahrt ? '' : form.ankunftSchule,
+        abfahrtSchule: form.istSonderfahrt ? '' : form.abfahrtSchule,
         endeFahrt: form.endeFahrt,
         gesamtzeit: gz,
         tourNr: form.tourNr.trim(),
@@ -271,7 +281,7 @@ export default function EntryScreen() {
     );
   }
 
-  const gesamtzeit = calcGesamtzeit(form.beginFahrt, form.endeFahrt);
+  const gesamtzeit = calcGesamtzeit(form.beginFahrt, form.ankunftSchule, form.abfahrtSchule, form.endeFahrt, form.istSonderfahrt);
 
   const labelStyle = {
     fontSize: typography.sizes.sm,
@@ -382,6 +392,31 @@ export default function EntryScreen() {
           })()}
         </View>
 
+        {/* Sonderfahrt toggle */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            ...fieldStyle,
+          }}
+        >
+          <View>
+            <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary }}>
+              Sonderfahrt
+            </Text>
+            <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary, marginTop: 2 }}>
+              Gesamtzeit = Beginn bis Ende
+            </Text>
+          </View>
+          <Switch
+            value={form.istSonderfahrt}
+            onValueChange={(v) => set('istSonderfahrt', v)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+            thumbColor={colors.text.inverse}
+          />
+        </View>
+
         {/* Time fields */}
         {(
           [
@@ -390,10 +425,12 @@ export default function EntryScreen() {
             { key: 'abfahrtSchule', label: 'Abfahrt Schule / Werkstätte' },
             { key: 'endeFahrt',     label: 'Ende Fahrt' },
           ] as const
+        ).filter(({ key }) =>
+          form.istSonderfahrt ? key !== 'ankunftSchule' && key !== 'abfahrtSchule' : true
         ).map(({ key, label }, index, array) => {
           // Live check: is this field valid relative to the previous one?
           let hasFieldError = false;
-          if (index > 0) {
+          if (index > 0 && !form.istSonderfahrt) {
             const prevKey = array[index - 1].key;
             const tPrev = parseTime(form[prevKey]).hours * 60 + parseTime(form[prevKey]).minutes;
             const tCurr = parseTime(form[key]).hours * 60 + parseTime(form[key]).minutes;

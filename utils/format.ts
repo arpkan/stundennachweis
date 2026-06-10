@@ -24,10 +24,19 @@ export function parseTime(time: string): { hours: number; minutes: number } {
   return { hours: h ?? 0, minutes: m ?? 0 };
 }
 
-export function calcGesamtzeit(begin: string, ende: string): number {
-  const b = parseTime(begin);
-  const e = parseTime(ende);
-  return e.hours * 60 + e.minutes - (b.hours * 60 + b.minutes);
+export function calcGesamtzeit(
+  begin: string,
+  ankunft: string,
+  abfahrt: string,
+  ende: string,
+  istSonderfahrt = false,
+): number {
+  const t1 = parseTime(begin).hours * 60 + parseTime(begin).minutes;
+  const t4 = parseTime(ende).hours * 60 + parseTime(ende).minutes;
+  if (istSonderfahrt || !ankunft || !abfahrt) return t4 - t1;
+  const t2 = parseTime(ankunft).hours * 60 + parseTime(ankunft).minutes;
+  const t3 = parseTime(abfahrt).hours * 60 + parseTime(abfahrt).minutes;
+  return (t2 - t1) + (t4 - t3);
 }
 
 export function formatGesamtzeit(minutes: number): string {

@@ -24,11 +24,19 @@ export async function migrateDatabase(db: SQLite.SQLiteDatabase): Promise<void> 
     );
   `);
 
-  // Migration 1: add bericht_monat (YYYY-MM) — which report a trip belongs to
   const versionRow = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-  if ((versionRow?.user_version ?? 0) < 1) {
+  const v = versionRow?.user_version ?? 0;
+
+  if (v < 1) {
+    // Migration 1: add bericht_monat (YYYY-MM) — which report a trip belongs to
     await db.execAsync('ALTER TABLE trips ADD COLUMN bericht_monat TEXT');
     await db.execAsync("UPDATE trips SET bericht_monat = substr(datum_iso, 1, 7) WHERE bericht_monat IS NULL");
     await db.execAsync('PRAGMA user_version = 1');
+  }
+
+  if (v < 2) {
+    // Migration 2: add ist_sonderfahrt — Beginn→Ende formula, Ankunft/Abfahrt empty
+    await db.execAsync('ALTER TABLE trips ADD COLUMN ist_sonderfahrt INTEGER NOT NULL DEFAULT 0');
+    await db.execAsync('PRAGMA user_version = 2');
   }
 }

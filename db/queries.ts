@@ -10,6 +10,7 @@ function rowToTrip(row: Record<string, unknown>): Trip {
     datum:           row.datum as string,
     datumIso,
     berichtMonat:    (row.bericht_monat as string | null) ?? datumIso.slice(0, 7),
+    istSonderfahrt:  Boolean(row.ist_sonderfahrt),
     beginFahrt:      row.beginn_fahrt as string,
     ankunftSchule:   row.ankunft_schule as string,
     abfahrtSchule:   row.abfahrt_schule as string,
@@ -54,13 +55,14 @@ export async function insertTrip(
   const berichtMonat = trip.berichtMonat || trip.datumIso.slice(0, 7);
   const result = await db.runAsync(
     `INSERT INTO trips
-       (datum, datum_iso, bericht_monat, beginn_fahrt, ankunft_schule, abfahrt_schule,
-        ende_fahrt, gesamtzeit, tour_nr, besonderheiten, aufgezeichnet_am)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (datum, datum_iso, bericht_monat, ist_sonderfahrt, beginn_fahrt, ankunft_schule,
+        abfahrt_schule, ende_fahrt, gesamtzeit, tour_nr, besonderheiten, aufgezeichnet_am)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       trip.datum,
       trip.datumIso,
       berichtMonat,
+      trip.istSonderfahrt ? 1 : 0,
       trip.beginFahrt,
       trip.ankunftSchule,
       trip.abfahrtSchule,
@@ -82,14 +84,15 @@ export async function updateTrip(
   const berichtMonat = trip.berichtMonat || trip.datumIso.slice(0, 7);
   await db.runAsync(
     `UPDATE trips SET
-       datum = ?, datum_iso = ?, bericht_monat = ?, beginn_fahrt = ?, ankunft_schule = ?,
-       abfahrt_schule = ?, ende_fahrt = ?, gesamtzeit = ?,
-       tour_nr = ?, besonderheiten = ?, aufgezeichnet_am = ?
+       datum = ?, datum_iso = ?, bericht_monat = ?, ist_sonderfahrt = ?,
+       beginn_fahrt = ?, ankunft_schule = ?, abfahrt_schule = ?,
+       ende_fahrt = ?, gesamtzeit = ?, tour_nr = ?, besonderheiten = ?, aufgezeichnet_am = ?
      WHERE id = ?`,
     [
       trip.datum,
       trip.datumIso,
       berichtMonat,
+      trip.istSonderfahrt ? 1 : 0,
       trip.beginFahrt,
       trip.ankunftSchule,
       trip.abfahrtSchule,

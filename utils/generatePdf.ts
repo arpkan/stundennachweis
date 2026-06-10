@@ -67,9 +67,11 @@ const THEAD = `
   </thead>`;
 
 function tripRowHtml(t: Trip): string {
+  const ankunft = t.istSonderfahrt ? '—' : t.ankunftSchule;
+  const abfahrt = t.istSonderfahrt ? '—' : t.abfahrtSchule;
   return `<tr>
-    <td>${t.datum}</td><td>${t.beginFahrt}</td><td>${t.ankunftSchule}</td>
-    <td>${t.abfahrtSchule}</td><td>${t.endeFahrt}</td><td>${formatGesamtzeit(t.gesamtzeit)}</td>
+    <td>${t.datum}</td><td>${t.beginFahrt}</td><td>${ankunft}</td>
+    <td>${abfahrt}</td><td>${t.endeFahrt}</td><td>${formatGesamtzeit(t.gesamtzeit)}</td>
     <td>${t.tourNr}</td><td>${t.besonderheiten ?? ''}</td><td>${t.aufgezeichnetAm}</td>
   </tr>`;
 }
@@ -332,15 +334,15 @@ export async function generatePdf(
   ];
 
   const dataRows = trips.map((t) => [
-    { text: t.datum,                         style: 'td' },
-    { text: t.beginFahrt,                    style: 'td' },
-    { text: t.ankunftSchule,                 style: 'td' },
-    { text: t.abfahrtSchule,                 style: 'td' },
-    { text: t.endeFahrt,                     style: 'td' },
-    { text: formatGesamtzeit(t.gesamtzeit),  style: 'td' },
-    { text: t.tourNr,                        style: 'td' },
-    { text: t.besonderheiten ?? '',          style: 'td' },
-    { text: t.aufgezeichnetAm,               style: 'td' },
+    { text: t.datum,                                       style: 'td' },
+    { text: t.beginFahrt,                                  style: 'td' },
+    { text: t.istSonderfahrt ? '—' : t.ankunftSchule,     style: 'td' },
+    { text: t.istSonderfahrt ? '—' : t.abfahrtSchule,     style: 'td' },
+    { text: t.endeFahrt,                                   style: 'td' },
+    { text: formatGesamtzeit(t.gesamtzeit),                style: 'td' },
+    { text: t.tourNr,                                      style: 'td' },
+    { text: t.besonderheiten ?? '',                        style: 'td' },
+    { text: t.aufgezeichnetAm,                             style: 'td' },
   ]);
 
   const sigStack: unknown[] = [];
