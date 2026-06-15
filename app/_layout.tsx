@@ -48,57 +48,8 @@ function ThemeManager({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     getAllSettings(db).then(s => {
       setMode(s.theme ?? 'system');
-      if (Platform.OS === 'web') {
-        try {
-          localStorage.setItem('reminder_enabled', s.reminderEnabled ? 'true' : 'false');
-          localStorage.setItem('reminder_time', s.reminderTime || '17:00');
-        } catch {}
-      }
     });
   }, [db, setMode]);
-
-  useEffect(() => {
-    if (Platform.OS !== 'web' || !('Notification' in window)) return;
-
-    const check = () => {
-      try {
-        if (localStorage.getItem('reminder_enabled') !== 'true') return;
-        if (Notification.permission !== 'granted') return;
-        const time = localStorage.getItem('reminder_time') || '17:00';
-        const [h, mn] = time.split(':').map(Number);
-        const now = new Date();
-        const today = now.toDateString();
-        if (localStorage.getItem('reminder_last_shown') === today) return;
-        const due = new Date(); due.setHours(h, mn, 0, 0);
-        if (now >= due) {
-          try {
-            new Notification('Stundennachweis vergessen?', {
-              body: 'Nicht vergessen, deine heutigen Fahrten einzutragen!',
-              icon: '/icon-192.png',
-            });
-            localStorage.setItem('reminder_last_shown', today);
-          } catch {
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.ready.then((reg) => {
-                if (reg.active) {
-                  reg.active.postMessage({
-                    type: 'SHOW_NOTIFICATION',
-                    title: 'Stundennachweis vergessen?',
-                    options: { body: 'Nicht vergessen, deine heutigen Fahrten einzutragen!', icon: '/icon-192.png', tag: 'daily-reminder' },
-                  });
-                  localStorage.setItem('reminder_last_shown', today);
-                }
-              }).catch(() => {});
-            }
-          }
-        }
-      } catch {}
-    };
-
-    check(); // fire immediately if it's past reminder time and not yet shown today
-    const id = setInterval(check, 60_000);
-    return () => clearInterval(id);
-  }, []);
 
   return (
     <ThemeContext.Provider value={{ mode, setMode }}>
