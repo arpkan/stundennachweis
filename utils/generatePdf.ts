@@ -66,12 +66,19 @@ const THEAD = `
     </tr>
   </thead>`;
 
+function tripDisplayValues(t: Trip) {
+  const beginn  = t.beginFahrt  || '—';
+  const ende    = t.endeFahrt   || '—';
+  const ankunft = t.istSonderfahrt || !t.beginFahrt  ? '—' : (t.ankunftSchule || '—');
+  const abfahrt = t.istSonderfahrt || !t.endeFahrt   ? '—' : (t.abfahrtSchule || '—');
+  return { beginn, ankunft, abfahrt, ende };
+}
+
 function tripRowHtml(t: Trip): string {
-  const ankunft = t.istSonderfahrt ? '—' : t.ankunftSchule;
-  const abfahrt = t.istSonderfahrt ? '—' : t.abfahrtSchule;
+  const { beginn, ankunft, abfahrt, ende } = tripDisplayValues(t);
   return `<tr>
-    <td>${t.datum}</td><td>${t.beginFahrt}</td><td>${ankunft}</td>
-    <td>${abfahrt}</td><td>${t.endeFahrt}</td><td>${formatGesamtzeit(t.gesamtzeit)}</td>
+    <td>${t.datum}</td><td>${beginn}</td><td>${ankunft}</td>
+    <td>${abfahrt}</td><td>${ende}</td><td>${formatGesamtzeit(t.gesamtzeit)}</td>
     <td>${t.tourNr}</td><td>${t.besonderheiten ?? ''}</td><td>${t.aufgezeichnetAm}</td>
   </tr>`;
 }
@@ -333,17 +340,20 @@ export async function generatePdf(
     { text: 'aufgezeichnet am', style: 'th' },
   ];
 
-  const dataRows = trips.map((t) => [
-    { text: t.datum,                                       style: 'td' },
-    { text: t.beginFahrt,                                  style: 'td' },
-    { text: t.istSonderfahrt ? '—' : t.ankunftSchule,     style: 'td' },
-    { text: t.istSonderfahrt ? '—' : t.abfahrtSchule,     style: 'td' },
-    { text: t.endeFahrt,                                   style: 'td' },
-    { text: formatGesamtzeit(t.gesamtzeit),                style: 'td' },
-    { text: t.tourNr,                                      style: 'td' },
-    { text: t.besonderheiten ?? '',                        style: 'td' },
-    { text: t.aufgezeichnetAm,                             style: 'td' },
-  ]);
+  const dataRows = trips.map((t) => {
+    const { beginn, ankunft, abfahrt, ende } = tripDisplayValues(t);
+    return [
+      { text: t.datum,                      style: 'td' },
+      { text: beginn,                        style: 'td' },
+      { text: ankunft,                       style: 'td' },
+      { text: abfahrt,                       style: 'td' },
+      { text: ende,                          style: 'td' },
+      { text: formatGesamtzeit(t.gesamtzeit), style: 'td' },
+      { text: t.tourNr,                      style: 'td' },
+      { text: t.besonderheiten ?? '',        style: 'td' },
+      { text: t.aufgezeichnetAm,             style: 'td' },
+    ];
+  });
 
   const sigStack: unknown[] = [];
   if (settings.unterschrift) {

@@ -234,11 +234,20 @@ Modal Stack:
 
 ## 11. Gesamtzeit calculation
 
-**Normal trip**: `Gesamtzeit = (Ankunft − Beginn) + (Ende − Abfahrt)` — driving time only; school dwell excluded.
+Four trip modes, controlled in EntryScreen:
 
-**Sonderfahrt**: `Gesamtzeit = Ende − Beginn` — no school stop; Ankunft and Abfahrt fields are hidden and stored as empty strings. In the PDF these cells show `—`.
+| Mode | UI controls | Formula | Empty fields stored |
+|---|---|---|---|
+| **Vollständige Fahrt** | Hinfahrt on + Rückfahrt on (default) | `(Ankunft−Beginn) + (Ende−Abfahrt)` | — |
+| **Nur Hinfahrt** | Hinfahrt on, Rückfahrt off | `Ankunft − Beginn` | `abfahrt_schule`, `ende_fahrt` |
+| **Nur Rückfahrt** | Hinfahrt off, Rückfahrt on | `Ende − Abfahrt` | `beginn_fahrt`, `ankunft_schule` |
+| **Sonderfahrt** | Sonderfahrt toggle on (overrides sections) | `Ende − Beginn` | `ankunft_schule`, `abfahrt_schule` |
 
-A **Sonderfahrt** toggle in EntryScreen switches between the two modes. When toggled on, the Ankunft Schule and Abfahrt Schule fields collapse. Toggling back off restores the previously entered values.
+**Hinfahrt / Rückfahrt section toggles** appear in EntryScreen when Sonderfahrt is off. Toggling a section off collapses its fields but preserves their values in memory so they can be restored if re-enabled. At least one section must remain on.
+
+**Sonderfahrt toggle** hides both section toggles and shows only Beginn + Ende.
+
+In the PDF, any empty time field renders as `—`.
 
 ---
 

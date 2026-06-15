@@ -18,7 +18,7 @@ import {
 } from '@/utils/format';
 import {
   getTripById, insertTrip, updateTrip,
-  getDefaultBeginFahrt, getRecentTourNumbers,
+  getRecentTourNumbers,
   getAllSettings, getLastTrip,
 } from '@/db/queries';
 import type { NewTrip } from '@/db/types';
@@ -31,8 +31,10 @@ const MONTH_NAMES = [
 type FormState = {
   datum: string;
   datumIso: string;
-  berichtMonat: string; // YYYY-MM
+  berichtMonat: string;
   istSonderfahrt: boolean;
+  hasHinfahrt: boolean;
+  hasRueckfahrt: boolean;
   beginFahrt: string;
   ankunftSchule: string;
   abfahrtSchule: string;
@@ -46,6 +48,8 @@ const DEFAULT_FORM: FormState = {
   datumIso: '',
   berichtMonat: '',
   istSonderfahrt: false,
+  hasHinfahrt: true,
+  hasRueckfahrt: true,
   beginFahrt: '07:00',
   ankunftSchule: '07:30',
   abfahrtSchule: '07:45',
@@ -59,6 +63,24 @@ function nextWeekday(from: Date): Date {
   d.setDate(d.getDate() + 1);
   while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
   return d;
+}
+
+// Returns the field values that will actually be stored, respecting section toggles
+function effectiveFields(form: FormState) {
+  if (form.istSonderfahrt) {
+    return {
+      beginFahrt:    form.beginFahrt,
+      ankunftSchule: '',
+      abfahrtSchule: '',
+      endeFahrt:     form.endeFahrt,
+    };
+  }
+  return {
+    beginFahrt:    form.hasHinfahrt   ? form.beginFahrt    : '',
+    ankunftSchule: form.hasHinfahrt   ? form.ankunftSchule : '',
+    abfahrtSchule: form.hasRueckfahrt ? form.abfahrtSchule : '',
+    endeFahrt:     form.hasRueckfahrt ? form.endeFahrt     : '',
+  };
 }
 
 export default function EntryScreen() {
@@ -91,10 +113,12 @@ export default function EntryScreen() {
             datumIso: trip.datumIso,
             berichtMonat: trip.berichtMonat,
             istSonderfahrt: trip.istSonderfahrt,
-            beginFahrt: trip.beginFahrt,
+            hasHinfahrt: trip.istSonderfahrt ? true : !!trip.beginFahrt,
+            hasRueckfahrt: trip.istSonderfahrt ? true : !!trip.endeFahrt,
+            beginFahrt:    trip.beginFahrt    || '07:00',
             ankunftSchule: trip.ankunftSchule || '07:30',
             abfahrtSchule: trip.abfahrtSchule || '07:45',
-            endeFahrt: trip.endeFahrt,
+            endeFahrt:     trip.endeFahrt     || '09:00',
             tourNr: trip.tourNr,
             besonderheiten: trip.besonderheiten ?? '',
           });
@@ -113,10 +137,12 @@ export default function EntryScreen() {
             datumIso: formatDatumIso(today),
             berichtMonat: bmForNew,
             istSonderfahrt: source.istSonderfahrt,
-            beginFahrt: source.beginFahrt,
+            hasHinfahrt: source.istSonderfahrt ? true : !!source.beginFahrt,
+            hasRueckfahrt: source.istSonderfahrt ? true : !!source.endeFahrt,
+            beginFahrt:    source.beginFahrt    || '07:00',
             ankunftSchule: source.ankunftSchule || '07:30',
             abfahrtSchule: source.abfahrtSchule || '07:45',
-            endeFahrt: source.endeFahrt,
+            endeFahrt:     source.endeFahrt     || '09:00',
             tourNr: source.tourNr,
             besonderheiten: '',
           });
@@ -134,9 +160,7 @@ export default function EntryScreen() {
 
       const weekday = defaultDate.getDay();
       const settings = await getAllSettings(db);
-      
-      // We check if the user has set a specific name or signature to assume settings are "touched",
-      // but more reliably, we just use the values from settings as they have fallbacks.
+
       const hasUserDefaults = settings.defaultBeginn !== '07:00' || settings.defaultEnde !== '09:00';
 
       let baseTimes = {
@@ -146,7 +170,6 @@ export default function EntryScreen() {
         ende_fahrt:      settings.defaultEnde,
       };
 
-      // If user hasn't touched settings, try to find a similar trip from history
       if (!hasUserDefaults) {
         const lastSimilar = await db.getFirstAsync<{
           beginn_fahrt: string;
@@ -171,10 +194,13 @@ export default function EntryScreen() {
         datum: formatDatum(defaultDate),
         datumIso: formatDatumIso(defaultDate),
         berichtMonat: bm || formatDatumIso(defaultDate).slice(0, 7),
-        beginFahrt:    baseTimes.beginn_fahrt,
-        ankunftSchule: baseTimes.ankunft_schule,
-        abfahrtSchule: baseTimes.abfahrt_schule,
-        endeFahrt:     baseTimes.ende_fahrt,
+        // Inherit half-day pattern from history; default to full day for settings
+        hasHinfahrt:  !hasUserDefaults ? !!baseTimes.beginn_fahrt  : true,
+        hasRueckfahrt: !hasUserDefaults ? !!baseTimes.ende_fahrt   : true,
+        beginFahrt:    baseTimes.beginn_fahrt   || '07:00',
+        ankunftSchule: baseTimes.ankunft_schule || '07:30',
+        abfahrtSchule: baseTimes.abfahrt_schule || '07:45',
+        endeFahrt:     baseTimes.ende_fahrt     || '09:00',
         tourNr: settings.defaultTour || (recentTours[0] ?? ''),
       });
     }
@@ -207,53 +233,59 @@ export default function EntryScreen() {
 
   const handleSave = async () => {
     if (!form) return;
-    
-    // 1. Tour-Nr validation
+
     if (!form.tourNr.trim()) {
       setError('Bitte geben Sie eine Tour-Nr. ein');
       return;
     }
 
-    // 2. Chronological sequence validation
-    const t1 = parseTime(form.beginFahrt).hours * 60 + parseTime(form.beginFahrt).minutes;
-    const t4 = parseTime(form.endeFahrt).hours * 60 + parseTime(form.endeFahrt).minutes;
-
+    const ef = effectiveFields(form);
     let gz: number;
+
     if (form.istSonderfahrt) {
+      const t1 = parseTime(ef.beginFahrt).hours * 60 + parseTime(ef.beginFahrt).minutes;
+      const t4 = parseTime(ef.endeFahrt).hours * 60 + parseTime(ef.endeFahrt).minutes;
       gz = t4 - t1;
     } else {
-      const t2 = parseTime(form.ankunftSchule).hours * 60 + parseTime(form.ankunftSchule).minutes;
-      const t3 = parseTime(form.abfahrtSchule).hours * 60 + parseTime(form.abfahrtSchule).minutes;
-      if (t2 < t1) { setError('Ankunft Schule darf nicht vor Beginn liegen'); return; }
-      if (t3 < t2) { setError('Abfahrt Schule darf nicht vor Ankunft liegen'); return; }
-      if (t4 < t3) { setError('Ende Fahrt darf nicht vor Abfahrt liegen'); return; }
-      gz = (t2 - t1) + (t4 - t3);
+      if (!form.hasHinfahrt && !form.hasRueckfahrt) {
+        setError('Mindestens eine Fahrtrichtung (Hinfahrt oder Rückfahrt) muss ausgewählt sein');
+        return;
+      }
+      if (form.hasHinfahrt) {
+        const t1 = parseTime(ef.beginFahrt).hours * 60 + parseTime(ef.beginFahrt).minutes;
+        const t2 = parseTime(ef.ankunftSchule).hours * 60 + parseTime(ef.ankunftSchule).minutes;
+        if (t2 < t1) { setError('Ankunft Schule darf nicht vor Beginn liegen'); return; }
+      }
+      if (form.hasRueckfahrt) {
+        const t3 = parseTime(ef.abfahrtSchule).hours * 60 + parseTime(ef.abfahrtSchule).minutes;
+        const t4 = parseTime(ef.endeFahrt).hours * 60 + parseTime(ef.endeFahrt).minutes;
+        if (t4 < t3) { setError('Ende Fahrt darf nicht vor Abfahrt liegen'); return; }
+      }
+      gz = calcGesamtzeit(ef.beginFahrt, ef.ankunftSchule, ef.abfahrtSchule, ef.endeFahrt, false);
     }
 
     if (gz <= 0) {
-      setError('Ende Fahrt muss nach Beginn Fahrt liegen');
+      setError('Die Fahrzeit muss größer als 0 sein');
       return;
     }
 
     setError(null);
     setSaving(true);
-    
+
     try {
       const today = new Date();
-      
-      // Ensure we have all required fields even if state is slightly stale
       const datumIso = form.datumIso || formatDatumIso(today);
       const finalTrip: NewTrip = {
-        datum: form.datum || formatDatum(today),
+        datum:         form.datum || formatDatum(today),
         datumIso,
-        berichtMonat: form.berichtMonat || datumIso.slice(0, 7),
+        berichtMonat:  form.berichtMonat || datumIso.slice(0, 7),
         istSonderfahrt: form.istSonderfahrt,
-        beginFahrt: form.beginFahrt,
-        ankunftSchule: form.istSonderfahrt ? '' : form.ankunftSchule,
-        abfahrtSchule: form.istSonderfahrt ? '' : form.abfahrtSchule,
-        endeFahrt: form.endeFahrt,
-        gesamtzeit: gz,
-        tourNr: form.tourNr.trim(),
+        beginFahrt:    ef.beginFahrt,
+        ankunftSchule: ef.ankunftSchule,
+        abfahrtSchule: ef.abfahrtSchule,
+        endeFahrt:     ef.endeFahrt,
+        gesamtzeit:    gz,
+        tourNr:        form.tourNr.trim(),
         besonderheiten: form.besonderheiten?.trim() || null,
         aufgezeichnetAm: formatDatum(today),
       };
@@ -263,7 +295,7 @@ export default function EntryScreen() {
       } else {
         await updateTrip(db, Number(id), finalTrip);
       }
-      
+
       router.back();
     } catch (e) {
       console.error('Save error:', e);
@@ -281,7 +313,27 @@ export default function EntryScreen() {
     );
   }
 
-  const gesamtzeit = calcGesamtzeit(form.beginFahrt, form.ankunftSchule, form.abfahrtSchule, form.endeFahrt, form.istSonderfahrt);
+  const ef = effectiveFields(form);
+  const gesamtzeit = calcGesamtzeit(ef.beginFahrt, ef.ankunftSchule, ef.abfahrtSchule, ef.endeFahrt, form.istSonderfahrt);
+
+  // Live field-level error indicators
+  let ankunftError = false;
+  if (!form.istSonderfahrt && form.hasHinfahrt) {
+    const t1 = parseTime(form.beginFahrt).hours * 60 + parseTime(form.beginFahrt).minutes;
+    const t2 = parseTime(form.ankunftSchule).hours * 60 + parseTime(form.ankunftSchule).minutes;
+    if (t2 < t1) ankunftError = true;
+  }
+
+  let endeError = false;
+  if (form.istSonderfahrt) {
+    const t1 = parseTime(form.beginFahrt).hours * 60 + parseTime(form.beginFahrt).minutes;
+    const t4 = parseTime(form.endeFahrt).hours * 60 + parseTime(form.endeFahrt).minutes;
+    if (t4 < t1) endeError = true;
+  } else if (form.hasRueckfahrt) {
+    const t3 = parseTime(form.abfahrtSchule).hours * 60 + parseTime(form.abfahrtSchule).minutes;
+    const t4 = parseTime(form.endeFahrt).hours * 60 + parseTime(form.endeFahrt).minutes;
+    if (t4 < t3) endeError = true;
+  }
 
   const labelStyle = {
     fontSize: typography.sizes.sm,
@@ -298,6 +350,13 @@ export default function EntryScreen() {
     paddingVertical: spacing.md,
     minHeight: 56,
   } as const;
+
+  const sectionToggleStyle = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    ...fieldStyle,
+  };
 
   return (
     <KeyboardAvoidingView
@@ -393,14 +452,7 @@ export default function EntryScreen() {
         </View>
 
         {/* Sonderfahrt toggle */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            ...fieldStyle,
-          }}
-        >
+        <View style={sectionToggleStyle}>
           <View>
             <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary }}>
               Sonderfahrt
@@ -417,40 +469,128 @@ export default function EntryScreen() {
           />
         </View>
 
-        {/* Time fields */}
-        {(
-          [
-            { key: 'beginFahrt',    label: 'Beginn Fahrt' },
-            { key: 'ankunftSchule', label: 'Ankunft Schule / Werkstätte' },
-            { key: 'abfahrtSchule', label: 'Abfahrt Schule / Werkstätte' },
-            { key: 'endeFahrt',     label: 'Ende Fahrt' },
-          ] as const
-        ).filter(({ key }) =>
-          form.istSonderfahrt ? key !== 'ankunftSchule' && key !== 'abfahrtSchule' : true
-        ).map(({ key, label }, index, array) => {
-          // Live check: is this field valid relative to the previous one?
-          let hasFieldError = false;
-          if (index > 0 && !form.istSonderfahrt) {
-            const prevKey = array[index - 1].key;
-            const tPrev = parseTime(form[prevKey]).hours * 60 + parseTime(form[prevKey]).minutes;
-            const tCurr = parseTime(form[key]).hours * 60 + parseTime(form[key]).minutes;
-            if (tCurr < tPrev) hasFieldError = true;
-          }
-
-          return (
-            <View key={key}>
-              <Text style={labelStyle}>{label}</Text>
+        {/* Sonderfahrt mode: Beginn + Ende only */}
+        {form.istSonderfahrt && (
+          <>
+            <View>
+              <Text style={labelStyle}>Beginn Fahrt</Text>
               <TimeField
-                label={label}
-                value={form[key]}
-                onChange={(v) => set(key, v)}
-                isOpen={openField === key}
-                onToggle={() => handleToggleField(key)}
-                isInvalid={hasFieldError}
+                label="Beginn Fahrt"
+                value={form.beginFahrt}
+                onChange={(v) => set('beginFahrt', v)}
+                isOpen={openField === 'beginFahrt'}
+                onToggle={() => handleToggleField('beginFahrt')}
+                isInvalid={false}
               />
             </View>
-          );
-        })}
+            <View>
+              <Text style={labelStyle}>Ende Fahrt</Text>
+              <TimeField
+                label="Ende Fahrt"
+                value={form.endeFahrt}
+                onChange={(v) => set('endeFahrt', v)}
+                isOpen={openField === 'endeFahrt'}
+                onToggle={() => handleToggleField('endeFahrt')}
+                isInvalid={endeError}
+              />
+            </View>
+          </>
+        )}
+
+        {/* Normal mode: Hinfahrt + Rückfahrt sections */}
+        {!form.istSonderfahrt && (
+          <>
+            {/* Hinfahrt section */}
+            <View style={sectionToggleStyle}>
+              <View>
+                <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary }}>
+                  Hinfahrt
+                </Text>
+                <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary, marginTop: 2 }}>
+                  Beginn bis Ankunft Schule
+                </Text>
+              </View>
+              <Switch
+                value={form.hasHinfahrt}
+                onValueChange={(v) => set('hasHinfahrt', v)}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.text.inverse}
+              />
+            </View>
+
+            {form.hasHinfahrt && (
+              <>
+                <View>
+                  <Text style={labelStyle}>Beginn Fahrt</Text>
+                  <TimeField
+                    label="Beginn Fahrt"
+                    value={form.beginFahrt}
+                    onChange={(v) => set('beginFahrt', v)}
+                    isOpen={openField === 'beginFahrt'}
+                    onToggle={() => handleToggleField('beginFahrt')}
+                    isInvalid={false}
+                  />
+                </View>
+                <View>
+                  <Text style={labelStyle}>Ankunft Schule / Werkstätte</Text>
+                  <TimeField
+                    label="Ankunft Schule / Werkstätte"
+                    value={form.ankunftSchule}
+                    onChange={(v) => set('ankunftSchule', v)}
+                    isOpen={openField === 'ankunftSchule'}
+                    onToggle={() => handleToggleField('ankunftSchule')}
+                    isInvalid={ankunftError}
+                  />
+                </View>
+              </>
+            )}
+
+            {/* Rückfahrt section */}
+            <View style={sectionToggleStyle}>
+              <View>
+                <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary }}>
+                  Rückfahrt
+                </Text>
+                <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary, marginTop: 2 }}>
+                  Abfahrt Schule bis Ende
+                </Text>
+              </View>
+              <Switch
+                value={form.hasRueckfahrt}
+                onValueChange={(v) => set('hasRueckfahrt', v)}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.text.inverse}
+              />
+            </View>
+
+            {form.hasRueckfahrt && (
+              <>
+                <View>
+                  <Text style={labelStyle}>Abfahrt Schule / Werkstätte</Text>
+                  <TimeField
+                    label="Abfahrt Schule / Werkstätte"
+                    value={form.abfahrtSchule}
+                    onChange={(v) => set('abfahrtSchule', v)}
+                    isOpen={openField === 'abfahrtSchule'}
+                    onToggle={() => handleToggleField('abfahrtSchule')}
+                    isInvalid={false}
+                  />
+                </View>
+                <View>
+                  <Text style={labelStyle}>Ende Fahrt</Text>
+                  <TimeField
+                    label="Ende Fahrt"
+                    value={form.endeFahrt}
+                    onChange={(v) => set('endeFahrt', v)}
+                    isOpen={openField === 'endeFahrt'}
+                    onToggle={() => handleToggleField('endeFahrt')}
+                    isInvalid={endeError}
+                  />
+                </View>
+              </>
+            )}
+          </>
+        )}
 
         {/* Gesamtzeit */}
         <View
@@ -537,7 +677,7 @@ export default function EntryScreen() {
         <View style={{ height: spacing.xl }} />
       </ScrollView>
 
-      {/* Save button — outside ScrollView so it stays visible */}
+      {/* Save button */}
       <View
         style={{
           padding: spacing.base,

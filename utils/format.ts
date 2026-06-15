@@ -31,12 +31,25 @@ export function calcGesamtzeit(
   ende: string,
   istSonderfahrt = false,
 ): number {
-  const t1 = parseTime(begin).hours * 60 + parseTime(begin).minutes;
-  const t4 = parseTime(ende).hours * 60 + parseTime(ende).minutes;
-  if (istSonderfahrt || !ankunft || !abfahrt) return t4 - t1;
-  const t2 = parseTime(ankunft).hours * 60 + parseTime(ankunft).minutes;
-  const t3 = parseTime(abfahrt).hours * 60 + parseTime(abfahrt).minutes;
-  return (t2 - t1) + (t4 - t3);
+  if (istSonderfahrt) {
+    const t1 = parseTime(begin).hours * 60 + parseTime(begin).minutes;
+    const t4 = parseTime(ende).hours * 60 + parseTime(ende).minutes;
+    return t4 - t1;
+  }
+  const hasMorning = !!begin && !!ankunft;
+  const hasAfternoon = !!abfahrt && !!ende;
+  let total = 0;
+  if (hasMorning) {
+    const t1 = parseTime(begin).hours * 60 + parseTime(begin).minutes;
+    const t2 = parseTime(ankunft).hours * 60 + parseTime(ankunft).minutes;
+    total += t2 - t1;
+  }
+  if (hasAfternoon) {
+    const t3 = parseTime(abfahrt).hours * 60 + parseTime(abfahrt).minutes;
+    const t4 = parseTime(ende).hours * 60 + parseTime(ende).minutes;
+    total += t4 - t3;
+  }
+  return total;
 }
 
 export function formatGesamtzeit(minutes: number): string {
