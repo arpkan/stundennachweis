@@ -12,11 +12,17 @@ const MONTH_NAMES = [
 // ─── WebView preview helpers (HTML) ──────────────────────────────────────────
 // These are used by bericht.tsx to render a live preview; the actual PDF uses pdfmake below.
 
-const FIRST_PAGE_AVAIL = 128;
-const OTHER_PAGE_AVAIL = 153;
-const ROW_BASE_H = 9;
-const BESON_LINE_H = 5;
-const BESON_CHARS_PER_LINE = 100;
+// Page-break estimate for the preview, in pt. Calibrated against pdfmake's own layout of the
+// docDefinition in generatePdf() below. Text wrapping is approximated by character count, so the
+// preview usually breaks pages where the PDF does and is otherwise off by about one row.
+// If you change margins, fonts, paddings or column widths there, re-measure these.
+const FIRST_PAGE_AVAIL = 442;   // below title, name line and table header
+const OTHER_PAGE_AVAIL = 494;   // below the repeated table header
+const ROW_BASE_H = 17.05;       // one-line row: 9pt text + 3pt padding top/bottom + border
+const BESON_LINE_H = 10.54;     // each extra wrapped line in Besonderheiten
+const BESON_CHARS_PER_LINE = 24;
+const FOOTER_H = 28;            // signature line + "Unterschrift", incl. 15pt top margin
+const FOOTER_SIGNATURE_H = 24;  // extra height when a signature image is shown
 
 function estimateRowHeight(trip: Trip): number {
   const text = trip.besonderheiten ?? '';
@@ -24,7 +30,7 @@ function estimateRowHeight(trip: Trip): number {
   return ROW_BASE_H + extraLines * BESON_LINE_H;
 }
 
-function splitIntoPages(trips: Trip[]): Trip[][] {
+function splitIntoPages(trips: Trip[], footerH: number): Trip[][] {
   const pages: Trip[][] = [];
   let page: Trip[] = [];
   let used = 0;
@@ -40,7 +46,9 @@ function splitIntoPages(trips: Trip[]): Trip[][] {
     page.push(trip);
     used += h;
   }
-  if (page.length > 0) pages.push(page);
+  pages.push(page);
+  // Like pdfmake, move the signature footer to its own page when it no longer fits.
+  if (page.length > 0 && used + footerH > avail) pages.push([]);
   return pages;
 }
 
@@ -87,7 +95,7 @@ export function buildReportHtml(trips: Trip[], settings: Settings, month: number
   const monatJahr = `${MONTH_NAMES[month - 1]} ${year}`;
   const fahrerName = settings.fahrerName || '_______________';
   const totalMinutes = trips.reduce((sum, t) => sum + t.gesamtzeit, 0);
-  const pages = splitIntoPages(trips);
+  const pages = splitIntoPages(trips, FOOTER_H + (settings.unterschrift ? FOOTER_SIGNATURE_H : 0));
   const totalPages = pages.length;
 
   const signatureImg = settings.unterschrift
@@ -108,7 +116,7 @@ export function buildReportHtml(trips: Trip[], settings: Settings, month: number
         ? `<h1>Stundennachweis für den Monat: ${monatJahr}</h1>
            <div class="meta">Name, Vorname: <strong>${fahrerName}</strong></div>`
         : ''}
-      <table>${COLGROUP}${THEAD}<tbody>${chunk.map(tripRowHtml).join('')}</tbody></table>
+      ${chunk.length > 0 ? `<table>${COLGROUP}${THEAD}<tbody>${chunk.map(tripRowHtml).join('')}</tbody></table>` : ''}
       <div class="page-number">Seite ${i + 1} von ${totalPages}</div>
       ${isLast ? footer : ''}
     </div>`;
