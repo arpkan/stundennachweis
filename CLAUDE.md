@@ -15,9 +15,8 @@ expo-sqlite              — local data persistence
 pdfmake                  — PDF generation (HTML in a WebView for the preview)
 expo-sharing             — share PDF via system sheet
 NativeWind               — Tailwind utility classes for RN
-react-native-reusables   — base UI primitives
 lucide-react-native      — icons
-react-native-reanimated v3 — animations
+react-native-reanimated v4 — animations
 react-native-gesture-handler — swipe-to-delete
 @react-native-community/datetimepicker — date picker
 react-native-signature-canvas — digital signature
