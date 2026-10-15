@@ -145,7 +145,7 @@ npx tsc --noEmit          # type check
 npm run build:web         # static web export to dist/
 ```
 
-To try the app with example data, import [`sample-backup.json`](sample-backup.json) under **Einstellungen → Daten importieren**. It contains one month of trips for the fictional driver "Max Mustermann".
+To try the app with example data, import [`sample-backup.json`](sample-backup.json) under **Einstellungen → Daten importieren**. It contains two months of trips (April and May 2026) for the fictional driver "Max Mustermann", including a special trip and half-day trips.
 
 ---
 

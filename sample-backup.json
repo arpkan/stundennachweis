@@ -21,10 +21,12 @@
       "ankunftSchule": "07:35",
       "abfahrtSchule": "07:50",
       "endeFahrt": "09:05",
-      "gesamtzeit": 125,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "01.04.2026"
+      "aufgezeichnetAm": "01.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "02.04.2026",
@@ -33,10 +35,12 @@
       "ankunftSchule": "07:25",
       "abfahrtSchule": "07:40",
       "endeFahrt": "09:00",
-      "gesamtzeit": 130,
       "tourNr": "18",
       "besonderheiten": "Umleitung wegen Straßenbauarbeiten.",
-      "aufgezeichnetAm": "02.04.2026"
+      "aufgezeichnetAm": "02.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 115
     },
     {
       "datum": "03.04.2026",
@@ -45,10 +49,12 @@
       "ankunftSchule": "07:40",
       "abfahrtSchule": "07:55",
       "endeFahrt": "09:10",
-      "gesamtzeit": 125,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "03.04.2026"
+      "aufgezeichnetAm": "03.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "07.04.2026",
@@ -57,10 +63,12 @@
       "ankunftSchule": "07:50",
       "abfahrtSchule": "08:05",
       "endeFahrt": "09:20",
-      "gesamtzeit": 125,
       "tourNr": "7",
       "besonderheiten": null,
-      "aufgezeichnetAm": "07.04.2026"
+      "aufgezeichnetAm": "07.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "08.04.2026",
@@ -69,10 +77,12 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 120,
       "tourNr": "12",
       "besonderheiten": "Starker Berufsverkehr, 5 Minuten Verspätung.",
-      "aufgezeichnetAm": "08.04.2026"
+      "aufgezeichnetAm": "08.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     },
     {
       "datum": "09.04.2026",
@@ -81,22 +91,26 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:05",
-      "gesamtzeit": 130,
       "tourNr": "18",
       "besonderheiten": null,
-      "aufgezeichnetAm": "09.04.2026"
+      "aufgezeichnetAm": "09.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 115
     },
     {
       "datum": "10.04.2026",
       "datumIso": "2026-04-10",
-      "beginFahrt": "07:00",
-      "ankunftSchule": "07:35",
-      "abfahrtSchule": "07:50",
-      "endeFahrt": "09:05",
-      "gesamtzeit": 125,
+      "beginFahrt": "08:00",
+      "ankunftSchule": "",
+      "abfahrtSchule": "",
+      "endeFahrt": "12:30",
       "tourNr": "7",
-      "besonderheiten": null,
-      "aufgezeichnetAm": "10.04.2026"
+      "besonderheiten": "Klassenausflug zum Tierpark.",
+      "aufgezeichnetAm": "10.04.2026",
+      "istSonderfahrt": true,
+      "berichtMonat": "2026-04",
+      "gesamtzeit": 270
     },
     {
       "datum": "14.04.2026",
@@ -105,10 +119,12 @@
       "ankunftSchule": "07:45",
       "abfahrtSchule": "08:00",
       "endeFahrt": "09:15",
-      "gesamtzeit": 125,
       "tourNr": "12",
       "besonderheiten": "Neuer Schüler aufgenommen.",
-      "aufgezeichnetAm": "14.04.2026"
+      "aufgezeichnetAm": "14.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "15.04.2026",
@@ -117,22 +133,26 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 120,
       "tourNr": "18",
       "besonderheiten": null,
-      "aufgezeichnetAm": "15.04.2026"
+      "aufgezeichnetAm": "15.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     },
     {
       "datum": "16.04.2026",
       "datumIso": "2026-04-16",
       "beginFahrt": "07:05",
       "ankunftSchule": "07:35",
-      "abfahrtSchule": "07:50",
-      "endeFahrt": "09:00",
-      "gesamtzeit": 115,
+      "abfahrtSchule": "",
+      "endeFahrt": "",
       "tourNr": "7",
-      "besonderheiten": null,
-      "aufgezeichnetAm": "16.04.2026"
+      "besonderheiten": "Rückfahrt entfällt, Schule endet früher.",
+      "aufgezeichnetAm": "16.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 30
     },
     {
       "datum": "22.04.2026",
@@ -141,10 +161,12 @@
       "ankunftSchule": "07:35",
       "abfahrtSchule": "07:50",
       "endeFahrt": "09:05",
-      "gesamtzeit": 125,
       "tourNr": "12",
       "besonderheiten": "Fahrzeugkontrolle vor Abfahrt durchgeführt.",
-      "aufgezeichnetAm": "22.04.2026"
+      "aufgezeichnetAm": "22.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "23.04.2026",
@@ -153,22 +175,26 @@
       "ankunftSchule": "07:25",
       "abfahrtSchule": "07:40",
       "endeFahrt": "08:55",
-      "gesamtzeit": 125,
       "tourNr": "7",
       "besonderheiten": null,
-      "aufgezeichnetAm": "23.04.2026"
+      "aufgezeichnetAm": "23.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "24.04.2026",
       "datumIso": "2026-04-24",
-      "beginFahrt": "07:00",
-      "ankunftSchule": "07:30",
+      "beginFahrt": "",
+      "ankunftSchule": "",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 120,
       "tourNr": "18",
-      "besonderheiten": null,
-      "aufgezeichnetAm": "24.04.2026"
+      "besonderheiten": "Hinfahrt von Kollegen übernommen.",
+      "aufgezeichnetAm": "24.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 75
     },
     {
       "datum": "28.04.2026",
@@ -177,10 +203,12 @@
       "ankunftSchule": "07:50",
       "abfahrtSchule": "08:05",
       "endeFahrt": "09:25",
-      "gesamtzeit": 130,
       "tourNr": "12",
       "besonderheiten": "Schüler vergessen, kurze Rückfahrt nötig.",
-      "aufgezeichnetAm": "28.04.2026"
+      "aufgezeichnetAm": "28.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 115
     },
     {
       "datum": "29.04.2026",
@@ -189,10 +217,12 @@
       "ankunftSchule": "07:35",
       "abfahrtSchule": "07:50",
       "endeFahrt": "09:05",
-      "gesamtzeit": 125,
       "tourNr": "7",
       "besonderheiten": null,
-      "aufgezeichnetAm": "29.04.2026"
+      "aufgezeichnetAm": "29.04.2026",
+      "berichtMonat": "2026-04",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "04.05.2026",
@@ -201,10 +231,12 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 120,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "04.05.2026"
+      "aufgezeichnetAm": "04.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     },
     {
       "datum": "05.05.2026",
@@ -213,10 +245,12 @@
       "ankunftSchule": "07:25",
       "abfahrtSchule": "07:40",
       "endeFahrt": "08:55",
-      "gesamtzeit": 120,
       "tourNr": "18",
       "besonderheiten": null,
-      "aufgezeichnetAm": "05.05.2026"
+      "aufgezeichnetAm": "05.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     },
     {
       "datum": "06.05.2026",
@@ -225,10 +259,12 @@
       "ankunftSchule": "07:40",
       "abfahrtSchule": "07:55",
       "endeFahrt": "09:15",
-      "gesamtzeit": 125,
       "tourNr": "7",
       "besonderheiten": "Kind verspätet abgeholt.",
-      "aufgezeichnetAm": "06.05.2026"
+      "aufgezeichnetAm": "06.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "07.05.2026",
@@ -237,10 +273,12 @@
       "ankunftSchule": "07:35",
       "abfahrtSchule": "07:50",
       "endeFahrt": "09:05",
-      "gesamtzeit": 125,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "07.05.2026"
+      "aufgezeichnetAm": "07.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "08.05.2026",
@@ -249,10 +287,12 @@
       "ankunftSchule": "07:20",
       "abfahrtSchule": "07:35",
       "endeFahrt": "08:50",
-      "gesamtzeit": 120,
       "tourNr": "18",
       "besonderheiten": "Baustelle, alternative Route gefahren.",
-      "aufgezeichnetAm": "08.05.2026"
+      "aufgezeichnetAm": "08.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     },
     {
       "datum": "11.05.2026",
@@ -261,10 +301,12 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 120,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "11.05.2026"
+      "aufgezeichnetAm": "11.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     },
     {
       "datum": "12.05.2026",
@@ -273,10 +315,12 @@
       "ankunftSchule": "07:40",
       "abfahrtSchule": "07:55",
       "endeFahrt": "09:10",
-      "gesamtzeit": 125,
       "tourNr": "7",
       "besonderheiten": null,
-      "aufgezeichnetAm": "12.05.2026"
+      "aufgezeichnetAm": "12.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "13.05.2026",
@@ -285,10 +329,12 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 125,
       "tourNr": "18",
       "besonderheiten": null,
-      "aufgezeichnetAm": "13.05.2026"
+      "aufgezeichnetAm": "13.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "15.05.2026",
@@ -297,10 +343,12 @@
       "ankunftSchule": "07:35",
       "abfahrtSchule": "07:50",
       "endeFahrt": "09:05",
-      "gesamtzeit": 125,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "15.05.2026"
+      "aufgezeichnetAm": "15.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "19.05.2026",
@@ -309,10 +357,12 @@
       "ankunftSchule": "07:45",
       "abfahrtSchule": "08:00",
       "endeFahrt": "09:20",
-      "gesamtzeit": 125,
       "tourNr": "7",
       "besonderheiten": "Reifendruckkontrolle vor Abfahrt.",
-      "aufgezeichnetAm": "19.05.2026"
+      "aufgezeichnetAm": "19.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "20.05.2026",
@@ -321,10 +371,12 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 120,
       "tourNr": "18",
       "besonderheiten": null,
-      "aufgezeichnetAm": "20.05.2026"
+      "aufgezeichnetAm": "20.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     },
     {
       "datum": "21.05.2026",
@@ -333,10 +385,12 @@
       "ankunftSchule": "07:35",
       "abfahrtSchule": "07:50",
       "endeFahrt": "09:00",
-      "gesamtzeit": 115,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "21.05.2026"
+      "aufgezeichnetAm": "21.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 100
     },
     {
       "datum": "22.05.2026",
@@ -345,10 +399,12 @@
       "ankunftSchule": "07:35",
       "abfahrtSchule": "07:50",
       "endeFahrt": "09:05",
-      "gesamtzeit": 125,
       "tourNr": "7",
       "besonderheiten": "Schüler krank, halbe Auslastung.",
-      "aufgezeichnetAm": "22.05.2026"
+      "aufgezeichnetAm": "22.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 110
     },
     {
       "datum": "26.05.2026",
@@ -357,10 +413,12 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:05",
-      "gesamtzeit": 130,
       "tourNr": "18",
       "besonderheiten": null,
-      "aufgezeichnetAm": "26.05.2026"
+      "aufgezeichnetAm": "26.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 115
     },
     {
       "datum": "27.05.2026",
@@ -369,10 +427,12 @@
       "ankunftSchule": "07:30",
       "abfahrtSchule": "07:45",
       "endeFahrt": "09:00",
-      "gesamtzeit": 120,
       "tourNr": "12",
       "besonderheiten": null,
-      "aufgezeichnetAm": "27.05.2026"
+      "aufgezeichnetAm": "27.05.2026",
+      "berichtMonat": "2026-05",
+      "istSonderfahrt": false,
+      "gesamtzeit": 105
     }
   ]
 }
