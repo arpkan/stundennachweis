@@ -11,7 +11,7 @@ This file provides instructional context for Gemini CLI when working in the **St
 - **Navigation:** `expo-router` (file-based navigation)
 - **Styling:** NativeWind (Tailwind CSS for React Native)
 - **Database:** `expo-sqlite` (local-only, offline-first)
-- **PDF Generation:** `expo-print` & `pdfmake` (dual-engine strategy)
+- **PDF Generation:** `pdfmake` for the PDF, HTML in a WebView for the preview
 - **Sharing:** `expo-sharing` & `expo-mail-composer`
 - **Notifications:** `expo-notifications` (for daily reminders)
 - **UI Components:** `react-native-reusables`, `lucide-react-native` (icons)
@@ -25,7 +25,6 @@ This file provides instructional context for Gemini CLI when working in the **St
 - `components/ui/`: Atomic UI components and primitives. **All screens must import from here.**
 - `db/`: Database schema definitions, migration scripts, and query logic.
 - `utils/`: Shared utilities for formatting, PDF generation, and backups.
-- `templates/`: Contains `stundennachweis.html`, the source of truth for PDF layout.
 - `theme.ts`: Centralized design tokens (Colors, Spacing, Typography).
 - `constants/`: Global constants and color definitions.
 
@@ -47,7 +46,7 @@ This file provides instructional context for Gemini CLI when working in the **St
 ### PDF Generation & Preview
 - **In-App Preview:** Uses `buildReportHtml` (in `utils/generatePdf.ts`) to generate an HTML string for the `WebView` on the `Bericht` screen.
 - **Exported PDF:** Uses `pdfmake` for creating the actual PDF file. This involves a complex patching layer in `utils/generatePdf.ts` to handle font parsing and character encodings within the Expo/Hermes environment.
-- **Layout Synchrony:** To modify the report layout, both the HTML generator (`buildReportHtml`) and the `pdfmake` document definition (`generatePdf`) in `utils/generatePdf.ts` must be updated. The file `templates/stundennachweis.html` is a static reference but is currently superseded by the logic in `utils/generatePdf.ts`.
+- **Layout Synchrony:** To modify the report layout, both the HTML generator (`buildReportHtml`) and the `pdfmake` document definition (`generatePdf`) in `utils/generatePdf.ts` must be updated.
 
 ## Engineering Standards & Conventions
 

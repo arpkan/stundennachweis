@@ -67,7 +67,7 @@ The formula is chosen from which time fields are filled in, so the driver never 
 | Storage | `expo-sqlite` on iOS and Android; `sql.js` (SQLite compiled to WebAssembly) saved to IndexedDB on web |
 | PDF | `pdfmake` for the PDF, an HTML template in a WebView for the live preview |
 | UI | NativeWind (Tailwind), `lucide-react-native` icons, Reanimated 4, Gesture Handler |
-| Device features | `expo-print`, `expo-sharing`, `expo-document-picker`, `expo-notifications`, `expo-screen-orientation`, `react-native-signature-canvas` |
+| Device features | `expo-sharing`, `expo-document-picker`, `expo-notifications`, `expo-screen-orientation`, `react-native-signature-canvas` |
 | CI/CD | GitHub Actions builds an iOS IPA (macOS runner) and a signed Android APK on every push to `main` |
 | Web hosting | Firebase Hosting (PWA with service worker and web app manifest) |
 

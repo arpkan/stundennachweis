@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 React Native + Expo (TypeScript)
 expo-router              — file-based navigation
 expo-sqlite              — local data persistence
-expo-print               — PDF generation from HTML
+pdfmake                  — PDF generation (HTML in a WebView for the preview)
 expo-sharing             — share PDF via system sheet
 NativeWind               — Tailwind utility classes for RN
 react-native-reusables   — base UI primitives
@@ -46,8 +46,8 @@ app/
     einstellungen.tsx   # SettingsScreen — Fahrer, Signature, Backup, Reminders, Reset
   entry/
     [id].tsx            # EntryScreen (modal) — add/edit trip
-templates/
-  stundennachweis.html  # HTML template for PDF generation
+utils/
+  generatePdf.ts        # report preview HTML + pdfmake PDF
 components/
   ui/                   # ALL primitive components live here
 theme.ts                # ALL design tokens
@@ -98,7 +98,7 @@ Never enter manually. Formula is inferred from which fields are non-empty.
 
 ## PDF spec
 
-Generated from `templates/stundennachweis.html` via `expo-print` + `pdfmake`. A4 landscape. Column order: Datum | Beginn Fahrt | Ankunft Schule/Werkstätte | Abfahrt Schule/Werkstätte | Ende Fahrt | Gesamtzeit | Tour-Nr. | Besonderheiten | aufgezeichnet am. Footer: digital signature image, monthly Gesamtzeit total right. Font: serif.
+Generated in `utils/generatePdf.ts`: `buildReportHtml` renders the on-screen preview, `generatePdf` builds the PDF with `pdfmake`. Keep both in sync. A4 landscape. Column order: Datum | Beginn Fahrt | Ankunft Schule/Werkstätte | Abfahrt Schule/Werkstätte | Ende Fahrt | Gesamtzeit | Tour-Nr. | Besonderheiten | aufgezeichnet am. Footer: digital signature image, monthly Gesamtzeit total right. Font: serif.
 
 ## German locale conventions
 
