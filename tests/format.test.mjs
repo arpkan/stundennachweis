@@ -5,6 +5,8 @@ import {
   calcGesamtzeit,
   formatGesamtzeit,
   formatZeitraum,
+  defaultEntryDate,
+  nextWeekday,
   formatDatum,
   parseDatum,
   parseTime,
@@ -55,4 +57,21 @@ test('formatZeitraum shows first and last recorded time for every trip type', ()
   assert.equal(formatZeitraum('07:05', '07:35', '', ''), '07:05 – 07:35');
   assert.equal(formatZeitraum('', '', '07:45', '09:00'), '07:45 – 09:00');
   assert.equal(formatZeitraum('08:00', '', '', '12:30'), '08:00 – 12:30');
+});
+
+test('nextWeekday skips the weekend', () => {
+  assert.equal(formatDatum(nextWeekday(new Date(2026, 3, 29))), '30.04.2026'); // Wed → Thu
+  assert.equal(formatDatum(nextWeekday(new Date(2026, 4, 1))), '04.05.2026');  // Fri → Mon
+});
+
+test('defaultEntryDate follows the report month being viewed', () => {
+  const today = new Date(2026, 9, 15, 10, 30); // Thu 15.10.2026
+  // Latest April trip on 29.04 → 30.04, even if later months have trips
+  assert.equal(formatDatum(defaultEntryDate(today, '2026-04-29', '2026-04')), '30.04.2026');
+  // Report month without trips in the past → its first weekday (01.08.2026 is a Saturday)
+  assert.equal(formatDatum(defaultEntryDate(today, null, '2026-08')), '03.08.2026');
+  // Current month without trips → today
+  assert.equal(formatDatum(defaultEntryDate(today, null, '2026-10')), '15.10.2026');
+  // No report month given → today
+  assert.equal(formatDatum(defaultEntryDate(today, null)), '15.10.2026');
 });

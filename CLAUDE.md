@@ -91,7 +91,7 @@ Never enter manually. Formula is inferred from which fields are non-empty.
 
 ## EntryScreen smart defaults
 
-- `Datum`: today (DD.MM.YYYY)
+- `Datum`: next weekday after the latest trip in the report month being viewed; with no trips there, today (current month) or the first weekday of that month (`defaultEntryDate` in `utils/format.ts`)
 - `Pre-fill Priority`: User Settings > Same Weekday History > System Baseline
 - Minute column snaps to 5-minute intervals
 

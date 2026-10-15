@@ -15,6 +15,31 @@ export function parseDatum(datum: string): Date {
   return new Date(y, m - 1, d);
 }
 
+export function nextWeekday(from: Date): Date {
+  const d = new Date(from);
+  d.setDate(d.getDate() + 1);
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+  return d;
+}
+
+/**
+ * Default date for a new trip opened from the report month `berichtMonat` (YYYY-MM):
+ * the next weekday after that month's latest trip; with no trips yet, today in the
+ * current month, otherwise the first weekday of the report month.
+ */
+export function defaultEntryDate(today: Date, lastTripIso: string | null, berichtMonat?: string): Date {
+  if (lastTripIso) {
+    const [y, m, d] = lastTripIso.split('-').map(Number);
+    return nextWeekday(new Date(y, m - 1, d));
+  }
+  if (!berichtMonat || berichtMonat === formatDatumIso(today).slice(0, 7)) {
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  }
+  const [y, m] = berichtMonat.split('-').map(Number);
+  const first = new Date(y, m - 1, 1);
+  return first.getDay() === 0 || first.getDay() === 6 ? nextWeekday(first) : first;
+}
+
 export function formatTime(hours: number, minutes: number): string {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }

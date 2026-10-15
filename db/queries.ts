@@ -188,6 +188,17 @@ export async function getLastTrip(
   return row ? rowToTrip(row) : null;
 }
 
+export async function getLastTripInReportMonth(
+  db: SQLite.SQLiteDatabase,
+  berichtMonat: string,
+): Promise<Trip | null> {
+  const row = await db.getFirstAsync<Record<string, unknown>>(
+    `SELECT * FROM trips WHERE bericht_monat = ? ORDER BY datum_iso DESC, id DESC LIMIT 1`,
+    [berichtMonat],
+  );
+  return row ? rowToTrip(row) : null;
+}
+
 // ─── settings ────────────────────────────────────────────────────────────────
 
 export async function getSetting(

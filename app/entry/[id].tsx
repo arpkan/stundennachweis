@@ -14,12 +14,12 @@ import { TimeField } from '@/components/ui/TimeField';
 import { TourChips } from '@/components/ui/TourChips';
 import {
   formatDatum, formatDatumIso, parseDatum,
-  calcGesamtzeit, formatGesamtzeit, parseTime,
+  calcGesamtzeit, formatGesamtzeit, parseTime, defaultEntryDate,
 } from '@/utils/format';
 import {
   getTripById, insertTrip, updateTrip,
   getRecentTourNumbers,
-  getAllSettings, getLastTrip,
+  getAllSettings, getLastTrip, getLastTripInReportMonth,
 } from '@/db/queries';
 import type { NewTrip } from '@/db/types';
 
@@ -57,13 +57,6 @@ const DEFAULT_FORM: FormState = {
   tourNr: '',
   besonderheiten: '',
 };
-
-function nextWeekday(from: Date): Date {
-  const d = new Date(from);
-  d.setDate(d.getDate() + 1);
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
-  return d;
-}
 
 // Returns the field values that will actually be stored, respecting section toggles
 function effectiveFields(form: FormState) {
@@ -150,13 +143,9 @@ export default function EntryScreen() {
         }
       }
 
-      // Default date: next weekday after the last entry, or today if no entries
-      let defaultDate = new Date(today);
-      const lastTrip = await getLastTrip(db);
-      if (lastTrip?.datumIso) {
-        const [y, mo, d] = lastTrip.datumIso.split('-').map(Number);
-        defaultDate = nextWeekday(new Date(y, mo - 1, d));
-      }
+      // Default date: next weekday after the latest trip of the report month being viewed
+      const lastTrip = bm ? await getLastTripInReportMonth(db, bm) : await getLastTrip(db);
+      const defaultDate = defaultEntryDate(today, lastTrip?.datumIso ?? null, bm);
 
       const weekday = defaultDate.getDay();
       const settings = await getAllSettings(db);

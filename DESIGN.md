@@ -257,6 +257,7 @@ Each trip has a `bericht_monat` (YYYY-MM) column that determines which monthly r
 
 - The month navigator on the Home and Bericht screens represents the **report month**, not a calendar filter.
 - When the user opens a new entry from the June tab, the new trip gets `bericht_monat = 2026-06` regardless of which date they pick — a May trip recorded late still appears in June's report.
+- A new entry's date defaults to the next weekday after the latest trip **of that report month**, so catching up on an earlier month starts in that month rather than after the newest trip overall.
 - The "Abrechnungsmonat" label is shown below the date field in EntryScreen so the driver always knows which report the trip will land in.
 - `bericht_monat` is set at creation time and preserved on edits (editing a trip never moves it to a different report).
 - Old backup files without `bericht_monat` fall back to `substr(datum_iso, 1, 7)` on restore.
