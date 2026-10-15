@@ -1,3 +1,3 @@
 export function useInstallPrompt() {
-  return { canInstall: false, isIos: false, promptInstall: async () => false, dismiss: () => {} };
+  return { canInstall: false, canPrompt: false, isIos: false, isStandalone: false, promptInstall: async () => false, dismiss: () => {} };
 }

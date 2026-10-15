@@ -105,7 +105,7 @@ app/
 components/ui/          Reusable building blocks (DrumColumn, TimeField, TourChips, SignaturePad, ...)
 db/                     Schema, migrations, typed queries, web SQLite adapter
 utils/                  Time maths, PDF generation, backup, notifications, platform wrappers
-templates/              HTML template for the report preview
+tests/                  Unit tests (Node's built-in test runner)
 theme.ts                Design tokens (colours, typography, spacing)
 ```
 
@@ -138,6 +138,8 @@ npx expo run:android      # native Android build on the emulator
 Other useful commands:
 
 ```bash
+npm test                  # unit tests (total-time maths, German date and duration formats)
+npm run lint              # ESLint (Expo config)
 npx tsc --noEmit          # type check
 npm run build:web         # static web export to dist/
 ```
@@ -153,6 +155,8 @@ The product was specified before any code was written:
 - [`PRD.md`](PRD.md): target users, success criteria, scope and what the app deliberately does **not** do
 - [`DESIGN.md`](DESIGN.md): design tokens, tap-target rules, a layout spec for each screen and interaction patterns
 - [`docs/`](docs): design documents for larger features such as PWA support
+
+The app was built with AI coding assistants. The spec documents above, together with the assistant instruction files ([`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md)), set the rules every generated change had to follow.
 
 Features were then added in small, focused commits, for example half-day trips, special trips and assigning trips to a different report month.
 

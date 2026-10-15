@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Platform } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { X, Info } from 'lucide-react-native';
-import { useThemeColors, typography, spacing, radii } from '@/theme';
+import { useThemeColors, typography, spacing } from '@/theme';
 
 const DISMISSED_KEY = 'data-info-banner-dismissed';
 
@@ -39,7 +39,7 @@ export function DataInfoBanner() {
     >
       <Info size={18} color={colors.warning} pointerEvents="none" style={{ marginTop: 2 }} />
       <Text style={{ flex: 1, fontSize: typography.sizes.sm, color: colors.text.secondary, lineHeight: typography.sizes.sm * 1.6 }}>
-        Deine Daten werden nur lokal auf diesem Gerät gespeichert. Verwende regelmäßig „Daten exportieren", um ein Backup zu erstellen.
+        Deine Daten werden nur lokal auf diesem Gerät gespeichert. Verwende regelmäßig „Daten exportieren“, um ein Backup zu erstellen.
       </Text>
       <Pressable onPress={dismiss} hitSlop={8}>
         <X size={18} color={colors.text.disabled} pointerEvents="none" />

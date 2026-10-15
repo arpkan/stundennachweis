@@ -1,11 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, Pressable, ScrollView, Image,
-  Modal, KeyboardAvoidingView, Platform, ActivityIndicator,
+  Modal, KeyboardAvoidingView, Platform, ActivityIndicator, Switch, Alert,
 } from 'react-native';
 import { useSQLiteContext } from '@/utils/platform/storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { Switch, Alert } from 'react-native';
 import { ChevronRight, X, PenLine, Upload, Download, Trash2, AlertTriangle, Moon, Smartphone, Info } from 'lucide-react-native';
 import { useThemeColors, useThemeMode, typography, spacing, radii, shadows } from '@/theme';
 import { getAllSettings, setSetting, deleteAllTrips, clearAllData } from '@/db/queries';
@@ -57,7 +56,7 @@ export default function EinstellungenScreen() {
   const [backupBusy, setBackupBusy] = useState(false);
   const [resetModal, setResetModal] = useState<'trips' | 'all' | null>(null);
   const [iosGuideVisible, setIosGuideVisible] = useState(false);
-  const { canInstall, canPrompt, isIos, isStandalone, promptInstall } = useInstallPrompt();
+  const { canPrompt, isIos, promptInstall } = useInstallPrompt();
   const { setMode } = useThemeMode();
 
   const sectionLabel = {
@@ -431,7 +430,7 @@ export default function EinstellungenScreen() {
           <View style={{ flexDirection: 'row', gap: spacing.sm, padding: spacing.sm }}>
             <Info size={16} color={colors.warning} pointerEvents="none" style={{ marginTop: 2 }} />
             <Text style={{ flex: 1, fontSize: typography.sizes.sm, color: colors.text.secondary, lineHeight: typography.sizes.sm * 1.5 }}>
-              Deine Daten werden nur lokal auf diesem Gerät gespeichert. Verwende regelmäßig „Daten exportieren", um ein Backup zu erstellen.
+              Deine Daten werden nur lokal auf diesem Gerät gespeichert. Verwende regelmäßig „Daten exportieren“, um ein Backup zu erstellen.
             </Text>
           </View>
         </View>

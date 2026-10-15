@@ -10,8 +10,7 @@ import { getTripsForMonth, getAllSettings } from '@/db/queries';
 import { buildReportHtml, generatePdf, preloadPdfMake } from '@/utils/generatePdf';
 import { formatGesamtzeit } from '@/utils/format';
 import { MonthYearPicker } from '@/components/ui/MonthYearPicker';
-import type { Trip } from '@/db/types';
-import type { Settings } from '@/db/types';
+import type { Trip, Settings } from '@/db/types';
 
 const HtmlPreview = ({ html }: { html: string }) => {
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
@@ -41,6 +40,8 @@ const HtmlPreview = ({ html }: { html: string }) => {
       />
     );
   }
+  // Loaded lazily so the web bundle never pulls in the native WebView module.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { WebView } = require('react-native-webview');
   return <WebView source={{ html }} style={{ flex: 1 }} scrollEnabled originWhitelist={['*']} />;
 };
