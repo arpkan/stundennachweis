@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Trash2 } from 'lucide-react-native';
 import { useThemeColors, typography, spacing, radii, shadows } from '@/theme';
-import { formatGesamtzeit } from '@/utils/format';
+import { formatGesamtzeit, formatZeitraum } from '@/utils/format';
 import type { Trip } from '@/db/types';
 
 type Props = {
@@ -71,7 +71,7 @@ export function EntryCard({ trip, onEdit, onDeleteRequest }: Props) {
               Tour {trip.tourNr}
             </Text>
             <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 2 }}>
-              {trip.beginFahrt} – {trip.endeFahrt}
+              {formatZeitraum(trip.beginFahrt, trip.ankunftSchule, trip.abfahrtSchule, trip.endeFahrt)}
             </Text>
           </View>
           <Text

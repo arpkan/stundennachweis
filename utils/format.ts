@@ -52,6 +52,18 @@ export function calcGesamtzeit(
   return total;
 }
 
+/** First and last recorded time of a trip, e.g. "07:45 – 09:00" for a Rückfahrt-only trip. */
+export function formatZeitraum(
+  begin: string,
+  ankunft: string,
+  abfahrt: string,
+  ende: string,
+): string {
+  const start = begin || abfahrt;
+  const end = ende || ankunft;
+  return `${start} – ${end}`;
+}
+
 export function formatGesamtzeit(minutes: number): string {
   if (minutes <= 0) return '—';
   const h = Math.floor(minutes / 60);

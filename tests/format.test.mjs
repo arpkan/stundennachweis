@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   calcGesamtzeit,
   formatGesamtzeit,
+  formatZeitraum,
   formatDatum,
   parseDatum,
   parseTime,
@@ -47,4 +48,11 @@ test('formatDatum / parseDatum round-trip DD.MM.YYYY', () => {
 
 test('parseTime splits HH:MM', () => {
   assert.deepEqual(parseTime('07:05'), { hours: 7, minutes: 5 });
+});
+
+test('formatZeitraum shows first and last recorded time for every trip type', () => {
+  assert.equal(formatZeitraum('07:00', '07:35', '07:50', '09:05'), '07:00 – 09:05');
+  assert.equal(formatZeitraum('07:05', '07:35', '', ''), '07:05 – 07:35');
+  assert.equal(formatZeitraum('', '', '07:45', '09:00'), '07:45 – 09:00');
+  assert.equal(formatZeitraum('08:00', '', '', '12:30'), '08:00 – 12:30');
 });
