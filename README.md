@@ -3,6 +3,7 @@
 **A digital timesheet app for German school bus drivers. Log each trip in under 30 seconds and send a signed monthly PDF report at the end of the month. No paper and no backend.**
 
 [![Live demo](https://img.shields.io/badge/Live%20demo-stundennachweis--app.web.app-1A56DB)](https://stundennachweis-app.web.app)
+[![CI](https://github.com/arpkan/stundennachweis/actions/workflows/ci.yml/badge.svg)](https://github.com/arpkan/stundennachweis/actions/workflows/ci.yml)
 ![Expo SDK 54](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo)
 ![React Native 0.81](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
