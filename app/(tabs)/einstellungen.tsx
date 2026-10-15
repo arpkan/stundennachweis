@@ -668,7 +668,7 @@ export default function EinstellungenScreen() {
                 Alle Fahrten löschen
               </Text>
               <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary }}>
-                Löscht alle Log-Einträge, behält Einstellungen
+                Löscht alle Fahrten, behält Einstellungen
               </Text>
             </View>
           </Pressable>

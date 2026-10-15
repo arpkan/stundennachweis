@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
 import { useSQLiteContext } from '@/utils/platform/storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { shareAsync } from '@/utils/platform/sharing';
-import { ChevronLeft, ChevronRight, Send } from 'lucide-react-native';
+import { shareAsync, isAvailableAsync } from '@/utils/platform/sharing';
+import { ChevronLeft, ChevronRight, Share, Download } from 'lucide-react-native';
 
 import { useThemeColors, typography, spacing, radii } from '@/theme';
 import { getTripsForMonth, getAllSettings } from '@/db/queries';
@@ -62,6 +62,8 @@ export default function BerichtScreen() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  // Phones open the share sheet; browsers without file sharing just download the PDF.
+  const [canShare, setCanShare] = useState(Platform.OS !== 'web');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,6 +80,7 @@ export default function BerichtScreen() {
 
   React.useEffect(() => {
     if (Platform.OS === 'web') preloadPdfMake();
+    isAvailableAsync().then(setCanShare).catch(() => setCanShare(false));
   }, []);
 
   const prevMonth = () => {
@@ -210,9 +213,11 @@ export default function BerichtScreen() {
             {sending
               ? <ActivityIndicator color={colors.text.inverse} />
               : <>
-                  <Send size={20} color={colors.text.inverse} pointerEvents="none" />
+                  {canShare
+                    ? <Share size={20} color={colors.text.inverse} pointerEvents="none" />
+                    : <Download size={20} color={colors.text.inverse} pointerEvents="none" />}
                   <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.semibold, color: colors.text.inverse }}>
-                    Bericht senden
+                    {canShare ? 'Bericht teilen' : 'Bericht herunterladen'}
                   </Text>
                 </>
             }

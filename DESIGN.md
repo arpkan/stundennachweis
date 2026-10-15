@@ -168,7 +168,7 @@ export const radii = {
 - Header: Month selector navigation.
 - Summary bar: count of trips + total duration.
 - **PDF preview**: Rendered via `WebView` using the HTML generator in `utils/generatePdf.ts`.
-- **"Bericht senden" button**: Full width, primary, triggers native system sharing sheet for the `pdfmake`-generated file.
+- **"Bericht teilen" button**: Full width, primary, opens the system share sheet for the `pdfmake`-generated file. In browsers that cannot share files it reads "Bericht herunterladen" and downloads the PDF.
 - Empty state: "Keine Fahrten in diesem Monat"; the send button appears only when the month has trips.
 - Report layout source of truth: `utils/generatePdf.ts` contains both `buildReportHtml` and `generatePdf`. Any change to report columns, signature position, margins, or footer must update both HTML and pdfmake paths.
 - Signature placement: signature image is left-aligned above the signature line in both preview and exported PDF.

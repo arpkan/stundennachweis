@@ -22,6 +22,12 @@ export async function shareAsync(
   document.body.removeChild(a);
 }
 
+/** True only when the browser can share files (not just links), i.e. shareAsync won't fall back to a download. */
 export async function isAvailableAsync(): Promise<boolean> {
-  return typeof navigator !== 'undefined' && !!navigator.share;
+  if (typeof navigator === 'undefined' || !navigator.share || !navigator.canShare) return false;
+  try {
+    return navigator.canShare({ files: [new File([], 'bericht.pdf', { type: 'application/pdf' })] });
+  } catch {
+    return false;
+  }
 }

@@ -156,7 +156,7 @@ Each **monthly report** has:
 - Preview and export layout both live in `utils/generatePdf.ts` and must stay visually aligned, especially table columns and signature placement.
 
 ### F5 — Report delivery
-- "Bericht senden" button on report preview screen
+- "Bericht teilen" button on report preview screen ("Bericht herunterladen" in browsers without file sharing)
 - Opens native system share sheet (Email, WhatsApp, etc.) with PDF attached.
 - Driver can choose recipient before sending.
 
@@ -166,7 +166,7 @@ Each **monthly report** has:
 
 1. **HomeScreen** — monthly trip list + "Neue Fahrt" FAB button + monthly total footer
 2. **EntryScreen** — add / edit a single trip entry
-3. **ReportScreen** — PDF preview + "Bericht senden" button
+3. **ReportScreen** — PDF preview + "Bericht teilen" button
 4. **SettingsScreen** — driver name, defaults, reminders, appearance, digital signature, backup/restore, danger zone
 
 Navigation: `expo-router` file-based. Tab bar: Fahrten | Bericht | Einstellungen.
