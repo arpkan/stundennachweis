@@ -9,6 +9,15 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20Android%20%7C%20Web%20(PWA)-555)
 
+<p align="center">
+  <img src="docs/screenshots/fahrten.png" alt="Trip list for April 2026 with monthly total" width="240">
+  &nbsp;
+  <img src="docs/screenshots/bericht.png" alt="Report preview matching the paper Stundennachweis form" width="240">
+  &nbsp;
+  <img src="docs/screenshots/einstellungen.png" alt="Settings with driver name and default trip times" width="240">
+</p>
+<p align="center"><em>Trip list · Monthly report preview · Settings — <a href="https://stundennachweis-app.web.app">try the live demo</a></em></p>
+
 ---
 
 ## The problem
